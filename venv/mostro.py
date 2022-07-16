@@ -3,8 +3,8 @@
 
 import telepot
 import time
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-from telepot.namedtuple import InlineKeyboardButton
+# from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
+# from telepot.namedtuple import InlineKeyboardButton
 import time
 from sqlitedict import SqliteDict
 
@@ -360,16 +360,15 @@ def sequenza(smg):
     commandList = []
     counter = 0
 
-    def collector(msg, n):
+    def collector(msg, n, counter = counter):
         if n < 10:
             command = msg['text']
             commandList.append(command)
             counter += 1
             print(commandList)
         else:
-            return false
+            return False
 
-    stopper = True
     time.sleep(2)
     bot.message_loop(collector)
 
@@ -406,7 +405,7 @@ def pop(key, cache_file = 'utenti.sqlite3'):
 """DIZIONARI"""
 
 
-funcs = {
+funcs = { # lista di funzioni
     '/start' : start,
     '/help' : help,
     '/sequenza' : sequenza
@@ -422,9 +421,6 @@ user_funcs = {
 
 #=======================================================================================================================
 """VARIABILI"""
-
-
-stopper = False
 
 
 #=======================================================================================================================
