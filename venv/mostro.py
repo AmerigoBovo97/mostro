@@ -1,96 +1,32 @@
 """IMPORT"""
 
-
 import telepot
 import time
-# from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-# from telepot.namedtuple import InlineKeyboardButton
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 import time
 from sqlitedict import SqliteDict
+import pprint
 
-
-#=======================================================================================================================
+# =======================================================================================================================
 """TOKEN"""
 
+bot = telepot.Bot('5426218063:AAFPRWcBi7KMpHpP8mZOkGAWM4Z2yO0NVq4')
 
-bot = telepot.Bot('1487812715:AAGlyVcLGE7rod6iBJ0-ZzhkmQYMDTQB-IQ')
-
-
-#=======================================================================================================================
+# =======================================================================================================================
 """CLASSI"""
 
 
 class User():
     """Ogni utente di telegram è un oggetto di questa classe"""
 
-    comp = {
-        'nome': 'Come si chiama il mostro? ',  # 0
-        'tipo': ['Di che tipo è? ', lambda text, self: text in self.tipo],  # 1
-        'taglia': 'Dimmi la taglia ',  # 2
-        'descrittore': 'Ha un descrittore particolare? ',  # 3
-        'allineamento': 'Dimmi il suo allinemanto ',  # 4
-        'CA': 'Dimmi la sua classe armatura ',  # 5
-        'n_dadoVita': 'Dimmi quanti dadi vita ha ',  # 6
-        'velocità': 'Dimmi la sua velocità ',  # 7
-        'stats': 'Dimmi le sue statistiche ',  # 8
-        'TS': 'Dimmi in che tiri salvezza ha competenza ',  # 9
-        'abilità': 'Dimmi in cosa ha competenza ',  # 10
-        'resDanni': 'Ha qulche resistenza ai danni? ',  # 11
-        'immDanni': 'Ha qualche immunità ai danni ',  # 12
-        'immCondizioni': 'Ha qualche immunità alle condizioni? ',  # 13
-        'sensi': 'Dimmi i suoi sensi ',  # 14
-        'linguaggi': 'Dimmi i suoi linguaggi ',  # 15
-        'sfida': 'Dimmi il suo grado sfida ',  # 16
-        'tratti': 'Dimmi che tratti ha ',  # 17
-        'azioni': 'Dimmi che azioni fa ',  # 18
-        'azioniLeggendarie': 'Dimmi che azioni leggendarie fa '  # 19
-    }
-    tipo = [
-        'aberrazione',
-        'bestia',
-        'celestiale',
-        'costrutto',
-        'drago',
-        'elementale',
-        'fatato',
-        'gigante',
-        'immondo',
-        'melma',
-        'mostruosità',
-        'non morto',
-        'pianta',
-        'umanoide',
-        'vegetale'
-    ]
 
-    def __init__(self, chat_id):
-        self.chat_id = chat_id
-        self.mostri = {}
-        self.monster_creator = True
-        self.componenti = self.comp
-        self.passaggio = 'nome'
+    def __init__(self, dict):
+        self.chat_id = dict['chat_id']
+        self.mostri = dict['mostri']
+        self.monster_creator = dict['monster_creator']
+        self.componenti = dict['componenti']
+        self.passaggio = dict['passaggio']
 
-    def new_mostro(self, msg):
-        """questa funzione crea un nuovo oggetto della classemostro e lo aggiunge a self.mostri"""
-
-        text = msg['text']
-        if self.componenti == True:
-            bot.sendMessage(self.chat_id, 'questo è il primo passaggio per creare un nuovo mostro, dimmi il nome che gli vuoi dare')
-            self.attr_modifier(monster_creator, True)
-        else:
-            while True:
-                comps = list(self.comp)
-                index = comps.index(self.passaggio)
-                bot.sendMessage(self.chat_id, self.comp[comps[index +1]][0])
-                res = self.comp[comps[index]][1]
-                if res:
-                    self.attr_modifier(componenti[self.passaggio], text)
-                    self.attr_modifier(passaggio, comps[index[self.comp]])
-
-    def attr_modifier(self, attr, *args, **kwargs):
-        pop(self.chat_id)
-        self.attr = args, kwargs
-        save(self.chat_id, self)
 
 
 class Mostro():
@@ -182,10 +118,10 @@ class Mostro():
         self.allineamento = componenti['allineamento']
         self.CA = componenti['CA']
         self.n_dadoVita = componenti['n_dadoVita']
-        self.velocità = componenti['velocità']
+        self.speed = componenti['velocità']
         self.stats = componenti['stats']
         self.TS = componenti['TS'].split()
-        self.abilità = componenti['abilità'].split()
+        self.skills = componenti['abilità'].split()
         self.resDanni = componenti['resDanni'].split()
         self.immDanni = componenti['immDanni'].split()
         self.immCondizioni = componenti['immCondizioni'].split()
@@ -200,52 +136,59 @@ class Mostro():
         self.azioniLeggendarie = componenti['azioniLeggendarie']
 
     def set_modificatori(self):
-        self.modificatori = {'FOR' : '','DES' : '', 'COS' : '', 'INT' : '', 'SAG' : '', 'CAR' : ''}
+        self.modificatori = {'FOR': '', 'DES': '', 'COS': '', 'INT': '', 'SAG': '', 'CAR': ''}
         for i in self.stats:
             if self.stats[i] > 9:
                 self.modificatori[i] = int((self.stats[i] - 10) / 2)
             else:
                 self.modificatori[i] = int((self.stats[i] - 11) / 2)
 
-    def set_str(self, mod, comp = 0):
+    def set_str(self, mod, comp=0):
         if mod + comp > -1:
-            return '+{n}'.format(n = str(mod + comp))
+            return '+{n}'.format(n=str(mod + comp))
         else:
-            return '{n}'.format(n = str(mod + comp))
+            return '{n}'.format(n=str(mod + comp))
 
-    def set_dadoVita(self):
+    def set_dado_vita(self):
         self.dadoVita = self.taglie[self.taglia]
-        cosModificatore = self.modificatori['COS'] * self.n_dadoVita
-        PF = self.n_dadoVita * self.dadoVita + cosModificatore
-        self.PF = '{PF} ({n_dadoVita}d{dadoVita} + {cos})'.format(PF = PF, n_dadoVita = self.n_dadoVita, dadoVita = self.dadoVita, cos = cosModificatore)
+        cos_modificatore = self.modificatori['COS'] * self.n_dadoVita
+        PF = self.n_dadoVita * self.dadoVita + cos_modificatore
+        self.PF = '{PF} ({n_dadoVita}d{dadoVita} + {cos})'.format(PF=PF, n_dadoVita=self.n_dadoVita,
+                                                                  dadoVita=self.dadoVita, cos=cos_modificatore)
 
     def set_TS(self):
         n = 0
         self.strTS = ''
         for i in self.TS:
             if n == 0:
-                self.strTS += ('{i} {mod}'.format(i = i ,mod = self.set_str(self.modificatori[i], self.PE[str(self.sfida)][1])))
+                self.strTS += (
+                    '{i} {mod}'.format(i=i, mod=self.set_str(self.modificatori[i], self.PE[str(self.sfida)][1])))
                 n += 1
             else:
-                self.strTS += (', {i} {mod}'.format(i=i, mod = self.set_str(self.modificatori[i], self.PE[str(self.sfida)][1])))
-                n +=1
+                self.strTS += (
+                    ', {i} {mod}'.format(i=i, mod=self.set_str(self.modificatori[i], self.PE[str(self.sfida)][1])))
+                n += 1
 
-    def set_abilità(self):
+    def set_skills(self):
         n = 0
-        self.strAbilità = ''
+        self.strSkills = ''
         key_list = list(self.abilitys.keys())
         val_list = list(self.abilitys.values())
-        for i in self.abilità:
+        for i in self.skills:
             for f in val_list:
                 if i in f:
                     if n == 0:
                         position = val_list.index(f)
-                        self.strAbilità += '{i} {mod}'.format(i = i ,mod = self.set_str(self.modificatori[key_list[position]], self.PE[str(self.sfida)][1]))
+                        self.strSkills += '{i} {mod}'.format(i=i,
+                                                             mod=self.set_str(self.modificatori[key_list[position]],
+                                                                              self.PE[str(self.sfida)][1]))
                         n += 1
                     else:
                         position = val_list.index(f)
-                        self.strAbilità += ', {i} {mod}'.format(i=i, mod = self.set_str(self.modificatori[key_list[position]], self.PE[str(self.sfida)][1]))
-                        n +=1
+                        self.strSkills += ', {i} {mod}'.format(i=i,
+                                                               mod=self.set_str(self.modificatori[key_list[position]],
+                                                                                self.PE[str(self.sfida)][1]))
+                        n += 1
                 else:
                     pass
 
@@ -257,45 +200,47 @@ class Mostro():
         for i in self.resDanni:
             if a == 0:
                 self.strResDanni += i
-                a +=1
+                a += 1
             else:
-                self.strResDanni += ", {i}".format(i = i)
-                a +=1
+                self.strResDanni += ", {i}".format(i=i)
+                a += 1
         self.strImmDanni = ''
         for i in self.immDanni:
             if b == 0:
                 self.strImmDanni += i
-                b +=1
+                b += 1
             else:
-                self.strImmDanni += ", {i}".format(i = i)
-                b +=1
+                self.strImmDanni += ", {i}".format(i=i)
+                b += 1
         self.strImmCondizioni = ''
         for i in self.immCondizioni:
             if c == 0:
                 self.strImmCondizioni += i
-                c +=1
+                c += 1
             else:
-                self.strImmCondizioni += ", {i}".format(i = i)
-                c +=1
+                self.strImmCondizioni += ", {i}".format(i=i)
+                c += 1
 
     def set_sensi(self):
         if self.sensi == '':
-            if 'Percezione' in self.abilità:
-                self.sensi += 'Percezione Passiva {mod}'.format(mod = self.set_str(self.modificatori['SAG'], self.PE[str(self.sfida)][1]))
+            if 'Percezione' in self.skills:
+                self.sensi += 'Percezione Passiva {mod}'.format(
+                    mod=self.set_str(self.modificatori['SAG'], self.PE[str(self.sfida)][1]))
             else:
-                self.sensi += 'Percezione Passiva {mod}'.format(mod = self.set_str(self.modificatori['SAG']))
+                self.sensi += 'Percezione Passiva {mod}'.format(mod=self.set_str(self.modificatori['SAG']))
         else:
             sensi = self.sensi
             self.sensi = ''
-            if 'Percezione' in self.abilità:
-                self.sensi += 'Percezione Passiva {mod}'.format(mod = self.set_str(self.modificatori['SAG'], self.PE[str(self.sfida)][1]))
+            if 'Percezione' in self.skills:
+                self.sensi += 'Percezione Passiva {mod}'.format(
+                    mod=self.set_str(self.modificatori['SAG'], self.PE[str(self.sfida)][1]))
             else:
-                self.sensi += 'Percezione Passiva {mod}'.format(mod = self.set_str(self.modificatori['SAG']))
+                self.sensi += 'Percezione Passiva {mod}'.format(mod=self.set_str(self.modificatori['SAG']))
 
-            self.sensi += ', {sensi}'.format(sensi = sensi)
+            self.sensi += ', {sensi}'.format(sensi=sensi)
 
 
-#=======================================================================================================================
+# =======================================================================================================================
 """FUZIONI"""
 
 
@@ -317,115 +262,168 @@ def on_chat_message(msg):
 
     chat_id = msg['chat']['id']
     text = msg['text']
-    obj = load(chat_id)
+    try:
+         obj = vars(load(chat_id))
+         print(obj)
+    except:
+        print('culo')
     if text in funcs:
         funcs[msg['text']](msg)
-    elif chat_id in SqliteDict('utenti.sqlite3') and text in user_funcs:
-        getattr(obj, user_funcs[text])(msg)
-    elif obj.monster_creator == False:
-        obj.new_mostro(msg)
+    elif not obj['monster_creator']:
+        monster_step(msg)
     else:
-        print('questo comando non esiste')
+        bot.sendMessage(chat_id, 'questo comando non esiste')
 
 
 def on_callback_query(msg):
-    print('culo')
+    print('sasso')
 
 
 def start(msg):
     """crea un nuovo utente se già non è registrato"""
 
     new_id = msg['chat']['id']
-    with SqliteDict('utenti.sqlite3') as mydict:
-        if new_id in mydict:
-            print('utente gia esistente')
-            bot.sendMessage(new_id, 'bentornato')
-        else:
-            new_user = User(new_id)
-            save(new_id, new_user)
-            print('nuovo utente registrato')
-            bot.sendMessage(new_id, 'benvenuto')
+    new_obj = user_creator
+    new_obj['chat_id'] = new_id
+    try:
+        print('merda')
+        with SqliteDict('utenti.sqlite3') as mydict:
+            if new_id in mydict:
+                print('utente gia esistente')
+                bot.sendMessage(new_id, 'bentornato')
+            else:
+                user = User(new_obj)
+                save(new_id, user)
+                print('nuovo utente registrato')
+                bot.sendMessage(new_id, 'benvenuto')
+    except:
+        user = User(new_obj)
+        save(new_id, user)
+        print('nuovo utente registrato')
+        bot.sendMessage(new_id, 'benvenuto')
 
 
-def help(msg):
-    """manda un messaggio con tutti i comandi e le loro funzioni"""
-
-    id = msg['chat']['id']
-    bot.sendMessage(id, '/help restituisce la lista di zioni')
-
-
-def sequenza(smg):
-    """tentativo di vedere se riesco a selezionare una sequenza di messaggi in ordine"""
-
-    commandList = []
-    counter = 0
-
-    def collector(msg, n, counter = counter):
-        if n < 10:
-            command = msg['text']
-            commandList.append(command)
-            counter += 1
-            print(commandList)
-        else:
-            return False
-
-    time.sleep(2)
-    bot.message_loop(collector)
+def new_mostro(msg):
+    chat_id = msg['chat']['id']
+    text = msg['text']
+    user = vars(load(chat_id))
+    bot.sendMessage(chat_id, 'questo è il primo passaggio per creare un nuovo mostro, dimmi il nome che gli vuoi dare')
+    user['monster_creator'] = False
+    newIstance = User(user)
+    save(chat_id, newIstance)
+    del newIstance
 
 
-def save(key, value, cache_file = 'utenti.sqlite3'):
+def monster_step(msg):
+
+    chat_id = msg['chat']['id']
+    text = msg['text']
+    user = vars(load(chat_id))
+
+    match user['passaggio']:
+        case 'nome':
+            user['componenti'] = text
+            user['passaggio'] = 'tipo'
+            newIstance = User(user)
+            save(chat_id, newIstance)
+            del newIstance
+            bot.sendMessage(chat_id, 'scelgi uno di questi')
+            l = []
+            for x in tipo:
+                l.append([InlineKeyboardButton(text=x, callback_data=x)])
+                keyboard = InlineKeyboardMarkup(inline_keyboard=[p for p in l])
+            bot.sendMessage(chat_id, 'scegli uno di questi', reply_markup=keyboard)
+
+        case 'tipo':
+            l = []
+            for x in tipo:
+                l.append([InlineKeyboardButton(text=x, callback_data=x)])
+                keyboard = InlineKeyboardMarkup(inline_keyboard=[p for p in l])
+            bot.sendMessage(chat_id, 'scegli uno di questi', reply_markup=keyboard)
+
+
+def save(key, value, cache_file='utenti.sqlite3'):
     try:
         with SqliteDict(cache_file) as mydict:
-            mydict[key] = value # Using dict[key] to store
-            mydict.commit() # Need to commit() to actually flush the data
+            mydict[key] = value  # Using dict[key] to store
+            mydict.commit()  # Need to commit() to actually flush the data
     except Exception as ex:
         print("Error during storing data save (Possibly unsupported):", ex)
 
 
-def load(key, cache_file = 'utenti.sqlite3'):
+def load(key, cache_file='utenti.sqlite3'):
     try:
         with SqliteDict(cache_file) as mydict:
-            value = mydict[key] # No need to use commit(), since we are only loading data!
+            value = mydict[key]  # No need to use commit(), since we are only loading data!
         return value
     except Exception as ex:
         print("Error during loading data load:", ex)
 
 
-def pop(key, cache_file = 'utenti.sqlite3'):
-    try:
-        with SqliteDict(cache_file) as mydict:
-            mydict.pop(key, default=None)
-            mydict.commit()
-
-    except Exception as ex:
-        print("Error during loading data pop:", ex)
-
-
-#=======================================================================================================================
+# =======================================================================================================================
 """DIZIONARI"""
 
-
-funcs = { # lista di funzioni
-    '/start' : start,
-    '/help' : help,
-    '/sequenza' : sequenza
-}
-user_funcs = {
-    'nuovo mostro' : 'new_mostro'
+funcs = {  # lista di funzioni richiamabili dall'utente
+    '/start': start,
+    '/nuovo': new_mostro
 }
 
+componenti = {
+    'nome': 'Come si chiama il mostro? ',  # 0
+    'tipo': 'Di che tipo è? ',  # 1
+    'taglia': 'Dimmi la taglia ',  # 2
+    'descrittore': 'Ha un descrittore particolare? ',  # 3
+    'allineamento': 'Dimmi il suo allinemanto ',  # 4
+    'CA': 'Dimmi la sua classe armatura ',  # 5
+    'n_dadoVita': 'Dimmi quanti dadi vita ha ',  # 6
+    'velocità': 'Dimmi la sua velocità ',  # 7
+    'stats': 'Dimmi le sue statistiche ',  # 8
+    'TS': 'Dimmi in che tiri salvezza ha competenza ',  # 9
+    'abilità': 'Dimmi in cosa ha competenza ',  # 10
+    'resDanni': 'Ha qulche resistenza ai danni? ',  # 11
+    'immDanni': 'Ha qualche immunità ai danni ',  # 12
+    'immCondizioni': 'Ha qualche immunità alle condizioni? ',  # 13
+    'sensi': 'Dimmi i suoi sensi ',  # 14
+    'linguaggi': 'Dimmi i suoi linguaggi ',  # 15
+    'sfida': 'Dimmi il suo grado sfida ',  # 16
+    'tratti': 'Dimmi che tratti ha ',  # 17
+    'azioni': 'Dimmi che azioni fa ',  # 18
+    'azioniLeggendarie': 'Dimmi che azioni leggendarie fa '  # 19
+}
 
-#=======================================================================================================================
+user_creator = {  # questo è il dizionario base che viene dato alla classe User come form predefinito
+    'chat_id': '',
+    'mostri': {},
+    'monster_creator': True,
+    'componenti': componenti,
+    'passaggio': 'nome'
+}
+
+# =======================================================================================================================
 """LISTE"""
 
+tipo = [
+    'aberrazione',
+    'bestia',
+    'celestiale',
+    'costrutto',
+    'drago',
+    'elementale',
+    'fatato',
+    'gigante',
+    'immondo',
+    'melma',
+    'mostruosità',
+    'non morto',
+    'pianta',
+    'umanoide',
+    'vegetale'
+]
 
-#=======================================================================================================================
+# =======================================================================================================================
 """VARIABILI"""
 
-
-#=======================================================================================================================
+# =======================================================================================================================
 """MAIN"""
 
-
 runner()
-
