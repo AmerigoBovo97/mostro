@@ -2,7 +2,7 @@
 
 import telepot
 import time
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
 import time
 from sqlitedict import SqliteDict
 import pprint
@@ -32,14 +32,6 @@ class User():
 class Mostro():
     """Ogni mostro che viene creato è un oggetto di questa classe"""
 
-    taglie = {
-        'Minuscola': 4,
-        'Piccola': 6,
-        'Media': 8,
-        'Grande': 10,
-        'Enorme': 12,
-        'Mastodontica': 20
-    }
     abilitys = {
         'FOR': [
             'Atletica'
@@ -266,7 +258,7 @@ def on_chat_message(msg):
          obj = vars(load(chat_id))
          print(obj)
     except:
-        print('culo')
+        print('Errore nel loading')
     if text in funcs:
         funcs[msg['text']](msg)
     elif not obj['monster_creator']:
@@ -305,10 +297,10 @@ def start(msg):
 
 def new_mostro(msg):
     chat_id = msg['chat']['id']
-    text = msg['text']
     user = vars(load(chat_id))
     bot.sendMessage(chat_id, 'questo è il primo passaggio per creare un nuovo mostro, dimmi il nome che gli vuoi dare')
     user['monster_creator'] = False
+    user['passaggio'] = 'nome'
     newIstance = User(user)
     save(chat_id, newIstance)
     del newIstance
@@ -322,24 +314,323 @@ def monster_step(msg):
 
     match user['passaggio']:
         case 'nome':
-            user['componenti'] = text
+            user['componenti']['nome'] = text
+            l = []
+            for x in tipo:
+                l.append([InlineKeyboardButton(text=x, callback_data=x)])
+                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard = True)
+            bot.sendMessage(chat_id, componenti['tipo'],  reply_markup=keyboard)
             user['passaggio'] = 'tipo'
             newIstance = User(user)
             save(chat_id, newIstance)
             del newIstance
-            bot.sendMessage(chat_id, 'scelgi uno di questi')
-            l = []
-            for x in tipo:
-                l.append([InlineKeyboardButton(text=x, callback_data=x)])
-                keyboard = InlineKeyboardMarkup(inline_keyboard=[p for p in l])
-            bot.sendMessage(chat_id, 'scegli uno di questi', reply_markup=keyboard)
 
         case 'tipo':
+            user['componenti']['tipo'] = text
             l = []
-            for x in tipo:
+            for x in taglie:
                 l.append([InlineKeyboardButton(text=x, callback_data=x)])
-                keyboard = InlineKeyboardMarkup(inline_keyboard=[p for p in l])
-            bot.sendMessage(chat_id, 'scegli uno di questi', reply_markup=keyboard)
+                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard = True)
+            bot.sendMessage(chat_id, componenti['taglia'], reply_markup=keyboard)
+            user['passaggio'] = 'taglia'
+            newIstance = User(user)
+            save(chat_id, newIstance)
+            del newIstance
+
+        case 'taglia':
+            user['componenti']['taglia'] = text
+            l = []
+            for x in descrittori:
+                l.append([InlineKeyboardButton(text=x, callback_data=x)])
+                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
+            bot.sendMessage(chat_id, componenti['descrittore'], reply_markup=keyboard)
+            user['passaggio'] = 'descrittore'
+            newIstance = User(user)
+            save(chat_id, newIstance)
+            del newIstance
+
+        case 'descrittore':
+            user['componenti']['descrittore'] = text
+            l = []
+            for x in allineamenti:
+                l.append([InlineKeyboardButton(text=x, callback_data=x)])
+                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
+            bot.sendMessage(chat_id, componenti['allineamento'], reply_markup=keyboard)
+            user['passaggio'] = 'allineamento'
+            newIstance = User(user)
+            save(chat_id, newIstance)
+            del newIstance
+
+        case 'allineamento':
+            user['componenti']['allineamento'] = text
+            bot.sendMessage(chat_id, componenti['CA'])
+            user['passaggio'] = 'CA'
+            newIstance = User(user)
+            save(chat_id, newIstance)
+            del newIstance
+
+        case 'CA':
+            user['componenti']['CA'] = text
+            bot.sendMessage(chat_id, componenti['n_dadoVita'])
+            user['passaggio'] = 'n_dadoVita'
+            newIstance = User(user)
+            save(chat_id, newIstance)
+            del newIstance
+
+        case 'n_dadoVita':
+            try:
+                user['componenti']['n_dadoVita'] = int(text)
+                if int(text) < 1: raise Exception
+                bot.sendMessage(chat_id, componenti['speed'])
+                user['passaggio'] = 'speed'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            except:
+                bot.sendMessage(chat_id, 'Il numero di dadi vita deve essere un numero intero maggiore di 0')
+
+        case 'speed':
+            user['componenti']['speed'] = text
+            bot.sendMessage(chat_id, componenti['stats'])
+            user['passaggio'] = 'stats'
+            newIstance = User(user)
+            save(chat_id, newIstance)
+            del newIstance
+
+        case 'stats':
+            try:
+                text = [int(i) for i in text.split()]
+                if len(text) != 6:
+                    raise ValueError
+                else:
+                    for i in text:
+                        if i < 1:
+                            raise ValueError
+                        else:
+                            pass
+                    user['componenti']['stats'] = text
+                    bot.sendMessage(chat_id, componenti['TS'])
+                    user['passaggio'] = 'TS'
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+
+            except ValueError:
+                bot.sendMessage(chat_id, 'le statistiche devonon essere 6 numeri interi maggiori di 0 e possibilimente minori di 31')
+
+        case 'TS':
+            if text == 'Nessuno':
+                user['componenti']['TS'] = ''
+                bot.sendMessage(chat_id, componenti['skills'])
+                user['passaggio'] = 'skills'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+
+            else:
+                try:
+                    text = text.split()
+                    for i in text:
+                        if i not in TS:
+                            raise ValueError
+                        else:
+                            pass
+                    user['componenti']['TS'] = text
+                    bot.sendMessage(chat_id, componenti['skills'])
+                    user['passaggio'] = 'skills'
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+                except ValueError:
+                    bot.sendMessage(chat_id, 'i tiri salvezza devono essere questi: For Des Cos Int Sag Car')
+
+        case 'skills':
+            if text == 'nessuno':
+                user['componenti']['skills'] = ''
+                bot.sendMessage(chat_id, componenti['resDanni'])
+                user['passaggio'] = 'resDanni'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+
+            else:
+                try:
+                    text = text.split()
+                    for i in text:
+                        if i not in skills:
+                            raise ValueError
+                        else:
+                            pass
+                    user['componenti']['skills'] = text
+                    bot.sendMessage(chat_id, componenti['resDanni'])
+                    user['passaggio'] = 'resDanni'
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+                except ValueError:
+                    bot.sendMessage(chat_id, 'le skills che un mostro puo avere sono queste')
+
+        case 'resDanni':
+            if text == 'nessuno':
+                user['componenti']['resDanni'] = ''
+                bot.sendMessage(chat_id, componenti['immDanni'])
+                user['passaggio'] = 'immDanni'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            else:
+                try:
+                    text = text.split()
+                    for i in text:
+                        if i not in danni:
+                            raise ValueError
+                        else:
+                            pass
+                    user['componenti']['resDanni'] = text
+                    bot.sendMessage(chat_id, componenti['immDanni'])
+                    user['passaggio'] = 'immDanni'
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+                except ValueError:
+                    bot.sendMessage(chat_id, 'i tipi di danni possibili sono questi')
+
+        case 'immDanni':
+            if text == 'nessuno':
+                user['componenti']['immDanni'] = ''
+                bot.sendMessage(chat_id, componenti['immCondizioni'])
+                user['passaggio'] = 'immCondizioni'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            else:
+                try:
+                    text = text.split()
+                    for i in text:
+                        if i not in danni:
+                            raise ValueError
+                        else:
+                            pass
+                    user['componenti']['immDanni'] = text
+                    bot.sendMessage(chat_id, componenti['immCondizioni'])
+                    user['passaggio'] = 'immCondizioni'
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+                except ValueError:
+                    bot.sendMessage(chat_id, 'i tipi di danni possibili sono questi')
+
+        case 'immCondizioni':
+            if text == 'nessuno':
+                user['componenti']['immCondizioni'] = ''
+                bot.sendMessage(chat_id, componenti['sensi'])
+                user['passaggio'] = 'sensi'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            else:
+                try:
+                    text = text.split()
+                    for i in text:
+                        if i not in condizioni:
+                            raise ValueError
+                        else:
+                            pass
+                    user['componenti']['immCondizioni'] = text
+                    bot.sendMessage(chat_id, componenti['sensi'])
+                    user['passaggio'] = 'sensi'
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+                except ValueError:
+                    bot.sendMessage(chat_id, 'le tipologie di condizioni sono queste')
+
+        case 'sensi':
+                if text == 'nessuno':
+                    user['componenti']['sensi'] = ''
+                    bot.sendMessage(chat_id, componenti['linguaggi'])
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+                else:
+                    user['componenti']['sensi'] = text
+                    bot.sendMessage(chat_id, componenti['linguaggi'])
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+
+        case 'linguaggi':
+            if text == 'nessuno':
+                user['componenti']['linguaggi'] = '--'
+                bot.sendMessage(chat_id, componenti['sfida'])
+                user['passaggio'] = 'sfida'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            else:
+                user['componenti']['linguaggi'] = text
+                bot.sendMessage(chat_id, componenti['sfida'])
+                user['passaggio'] = 'sfida'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+
+        case 'sfida':
+            try:
+                if text in PE:
+                    user['componenti']['sfida'] = text
+                    bot.sendMessage(chat_id, componenti['tratti'])
+                    user['passaggio'] = 'tratti'
+                    newIstance = User(user)
+                    save(chat_id, newIstance)
+                    del newIstance
+                else:
+                    raise ValueError
+            except ValueError:
+                bot.sendMessage(chat_id, 'Igor ma ti sembra possibile che {} sia la sfida di un mostro?????')
+
+        case 'tratti':
+            if text != 'Basta':
+                text = text.split('!')
+                user['componenti']['tratti'][text][0] = text[1]
+                bot.sendMessage(chat_id, 'se vuoi aggiungere altri tratti fallo altrimenti scrivi: Basta')
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            else:
+                bot.sendMessage(chat_id, componenti['azioni'])
+                user['passaggio'] = 'azioni'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+
+        case 'azioni':
+            if text != 'Basta':
+                text = text.split('!')
+                user['componenti']['azioni'][text][0] = text[1]
+                bot.sendMessage(chat_id, 'se vuoi aggiungere altre azioni fallo altrimenti scrivi: Basta')
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            else:
+                bot.sendMessage(chat_id, componenti['azioni leggendarie'])
+                user['passaggio'] = 'azioni leggendarie'
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+
+        case 'azioni leggendarie':
+            if text != 'Basta':
+                text = text.split('!')
+                user['componenti']['azioni leggendarie'][text][0] = text[1]
+                bot.sendMessage(chat_id, 'se vuoi aggiungere altre azioni leggendarie fallo altrimenti scrivi: Basta')
+                newIstance = User(user)
+                save(chat_id, newIstance)
+                del newIstance
+            else:
+                bot.sendMessage(chat_id, componenti['ottimo hai completato tutti i passaggi e ora ecco qui il tuo mostro personalizzato'])
+
+
 
 
 def save(key, value, cache_file='utenti.sqlite3'):
@@ -376,19 +667,19 @@ componenti = {
     'allineamento': 'Dimmi il suo allinemanto ',  # 4
     'CA': 'Dimmi la sua classe armatura ',  # 5
     'n_dadoVita': 'Dimmi quanti dadi vita ha ',  # 6
-    'velocità': 'Dimmi la sua velocità ',  # 7
+    'speed': 'Dimmi la sua velocità ',  # 7
     'stats': 'Dimmi le sue statistiche ',  # 8
-    'TS': 'Dimmi in che tiri salvezza ha competenza ',  # 9
-    'abilità': 'Dimmi in cosa ha competenza ',  # 10
+    'TS': 'Ora dimmi se il mostro ha qualche competeneza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno',  # 9
+    'skills': 'Dimmi in cosa ha competenza ',  # 10
     'resDanni': 'Ha qulche resistenza ai danni? ',  # 11
     'immDanni': 'Ha qualche immunità ai danni ',  # 12
     'immCondizioni': 'Ha qualche immunità alle condizioni? ',  # 13
     'sensi': 'Dimmi i suoi sensi ',  # 14
     'linguaggi': 'Dimmi i suoi linguaggi ',  # 15
     'sfida': 'Dimmi il suo grado sfida ',  # 16
-    'tratti': 'Dimmi che tratti ha ',  # 17
-    'azioni': 'Dimmi che azioni fa ',  # 18
-    'azioniLeggendarie': 'Dimmi che azioni leggendarie fa '  # 19
+    'tratti': 'dimmi che tratti ha con questo formato\ntitolo del tratto! descrizione del tratto',  # 17
+    'azioni': 'dimmi che azioni ha con questo formato\ntitolo del azione! descrizione del azione',  # 18
+    'azioniLeggendarie': 'dimmi che azioni leggendarie ha con questo formato\ntitolo dell\' azione leggendaria! descrizione dell\' azione leggendaria'  # 19
 }
 
 user_creator = {  # questo è il dizionario base che viene dato alla classe User come form predefinito
@@ -399,25 +690,192 @@ user_creator = {  # questo è il dizionario base che viene dato alla classe User
     'passaggio': 'nome'
 }
 
+taglia = {
+    'Minuscola': 4,
+    'Piccola': 6,
+    'Media': 8,
+    'Grande': 10,
+    'Enorme': 12,
+    'Mastodontica': 20
+}
+
+PE = {
+    '0': ['0', 2],
+    '1 / 8': ['25', 2],
+    '1 / 4': ['50', 2],
+    '1 / 2': ['100', 2],
+    '1': ['200', 2],
+    '2': ['450', 2],
+    '3': ['700', 2],
+    '4': ['1100', 2],
+    '5': ['1800', 3],
+    '6': ['2300', 3],
+    '7': ['2900', 3],
+    '8': ['3900', 3],
+    '9': ['5000', 4],
+    '10': ['5900', 4],
+    '11': ['7200', 4],
+    '12': ['8400', 4],
+    '13': ['10000', 5],
+    '14': ['11500', 5],
+    '15': ['13000', 5],
+    '16': ['15000', 5],
+    '17': ['18000', 6],
+    '18': ['20000', 6],
+    '19': ['22000', 6],
+    '20': ['25000', 6],
+    '21': ['33000', 7],
+    '22': ['41000', 7],
+    '23': ['50000', 7],
+    '24': ['62000', 7],
+    '25': ['75000', 8],
+    '26': ['90000', 8],
+    '27': ['105000', 8],
+    '28': ['15000', 8],
+    '29': ['135000', 9],
+    '30': ['155000', 9],
+}
+
 # =======================================================================================================================
 """LISTE"""
 
 tipo = [
-    'aberrazione',
-    'bestia',
-    'celestiale',
-    'costrutto',
-    'drago',
-    'elementale',
-    'fatato',
-    'gigante',
-    'immondo',
-    'melma',
-    'mostruosità',
-    'non morto',
-    'pianta',
-    'umanoide',
-    'vegetale'
+    'Aberrazione',
+    'Bestia',
+    'Celestiale',
+    'Costrutto',
+    'Drago',
+    'Elementale',
+    'Fatato',
+    'Gigante',
+    'Immondo',
+    'Melma',
+    'Mostruosità',
+    'Non morto',
+    'Pianta',
+    'Umanoide',
+    'Vegetale'
+]
+
+taglie = [
+    'Minuscola',
+    'Piccola',
+    'Media',
+    'Grande',
+    'Enorme',
+    'Mastodontica'
+]
+
+descrittori = [
+    'orco',
+    'aarakocra)',
+    'goblinoide',
+    'bullywug',
+    'coboldo',
+    'dmeone',
+    'mutaforma',
+    'diavolo',
+    'nano',
+    'elfo',
+    'titano',
+    'gith',
+    'gnoll',
+    'gnomo',
+    'grimlock',
+    'kenku',
+    'kuo-toa',
+    'umano',
+    'lucertoloide',
+    'marinide',
+    'sahuagin',
+    'thri-kreen',
+    'troglodita',
+    'yuan-ti',
+    'yugoloth'
+]
+
+allineamenti = [
+    'Legale Buono',
+    'Legale Neutrale',
+    'Legale Malvagio',
+    'Neutrale Buono',
+    'Neutrale Puro',
+    'Neutrale Malvagio',
+    'Caotico Buono',
+    'Caotico Neutrale',
+    'Caotico Malvagio'
+
+]
+
+tiri_salvezza = [
+    'For',
+    'Des',
+    'Cos',
+    'Int',
+    'Sag',
+    'Car'
+]
+
+TS = [
+    'For',
+    'Des',
+    'Cos',
+    'Int',
+    'Sag',
+    'Car'
+]
+
+skills = [
+    'Atletica',
+    'Acrobazia',
+    'Furtività',
+    'Rapidità do mano',
+    'Arcano',
+    'Investigare',
+    'Natura',
+    'Religione',
+    'Storia',
+    'Empatia animale',
+    'intuizione',
+    'Medicina',
+    'Percezione',
+    'Sopravvienza',
+    'Intimidre',
+    'Ingannare',
+    'Intrattenere',
+    'Persuadere'
+]
+
+danni = [
+    'Taglienti',
+    'Contundenti',
+    'Perforanti',
+    'Fuoco',
+    'Ghiaccio',
+    'Veleno',
+    'Necrotici',
+    'Radianti',
+    'Fulmine',
+    'Acido',
+    'Psichici',
+    'Tuono'
+]
+
+condizioni =[
+    'Accecato',
+    'Affascinato',
+    'Afferrato',
+    'Assordato',
+    'Avvelenato',
+    'Icapacitato',
+    'Invisibilità',
+    'Paralizzato',
+    'Pietrificato',
+    'Privo di sensi',
+    'Prono',
+    'Spaventato',
+    'Stordito',
+    'Trattenuto'
 ]
 
 # =======================================================================================================================
