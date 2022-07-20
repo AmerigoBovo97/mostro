@@ -2,9 +2,7 @@ from sqlitedict import SqliteDict
 from DataSet import *
 import time
 
-"""
-In questo file ci sono tutte le funzioni di sistema
-"""
+"""In questo file ci sono tutte le funzioni di sistema"""
 
 
 def save(key, value, cache_file='utenti.sqlite3'):
@@ -27,6 +25,12 @@ def load(key, cache_file='utenti.sqlite3'):
         return vars(value)
     except Exception as ex:
         print("Error during loading data load:", ex)
+
+
+def changer(dict):
+    new_istance = User(dict)
+    save(dict['chat_id'], new_istance)
+    del new_istance
 
 
 def on_chat_message(msg):
