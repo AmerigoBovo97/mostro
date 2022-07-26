@@ -1,4 +1,5 @@
-from FunzioniUtente import *
+import FunzioniUtente
+from MonsterClass import *
 
 """Qui ci sono tutte le liste e i dizionari che mi servono"""
 
@@ -6,33 +7,32 @@ from FunzioniUtente import *
 """DIZIONARI"""
 
 funcs = {  # lista di funzioni richiamabili dall'utente
-    '/start': start,
-    '/nuovo': new_mostro
+    '/start': FunzioniUtente.start,
+    '/nuovo': FunzioniUtente.new_mostro
 }
 
 componenti = {
     # questo dizionario contiene tutti i valori del mostro, all'izio il valore delle chiavi è il messaggio che il bot invierà come richiesta, poi verrà sostituita dall'imput dell'utente
-    'nome': 'Come si chiama il mostro? ',  # 0
-    'tipo': 'Di che tipo è? ',  # 1
-    'taglia': 'Dimmi la taglia ',  # 2
-    'descrittore': 'Ha un descrittore particolare? ',  # 3
-    'allineamento': 'Dimmi il suo allinemanto ',  # 4
-    'CA': 'Dimmi la sua classe armatura ',  # 5
-    'n_dadoVita': 'Dimmi quanti dadi vita ha ',  # 6
-    'speed': 'Dimmi la sua velocità ',  # 7
-    'stats': 'Dimmi le sue statistiche ',  # 8
-    'TS': 'Ora dimmi se il mostro ha qualche competeneza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno',
-    # 9
-    'skills': 'Dimmi in cosa ha competenza ',  # 10
-    'resDanni': 'Ha qulche resistenza ai danni? ',  # 11
-    'immDanni': 'Ha qualche immunità ai danni ',  # 12
-    'immCondizioni': 'Ha qualche immunità alle condizioni? ',  # 13
-    'sensi': 'Dimmi i suoi sensi ',  # 14
-    'linguaggi': 'Dimmi i suoi linguaggi ',  # 15
-    'sfida': 'Dimmi il suo grado sfida ',  # 16
-    'tratti': 'dimmi che tratti ha con questo formato\ntitolo del tratto! descrizione del tratto',  # 17
-    'azioni': 'dimmi che azioni ha con questo formato\ntitolo del azione! descrizione del azione',  # 18
-    'azioniLeggendarie': 'dimmi che azioni leggendarie ha con questo formato\ntitolo dell\' azione leggendaria! descrizione dell\' azione leggendaria'
+    'nome': [case_nome, 'Come si chiama il mostro? ', 'Il mostro deve avere un nome diverso dagli altri mostri che hai già crato'],  # 0
+    'tipo': [case_tipo, 'Di che tipo è? ', 'Il tipo di mostro deve essere uno di questi'],  # 1
+    'taglia': [case_taglia, 'Dimmi la taglia ', 'La taglia deve essere una di queste'],  # 2
+    'descrittore': [case_descrittore, 'Ha un descrittore particolare? '],  # 3
+    'allineamento': [case_allineamento, 'Dimmi il suo allinemanto ', 'L\'allineamento deve essere uno di questi'],  # 4
+    'CA': [case_allineamento, 'Dimmi la sua classe armatura '],  # 5
+    'n_dadoVita': [case_n_dadoVita, 'Dimmi quanti dadi vita ha ', 'Il numero dei dadi vita deve essere un numero naturale maggiore di 0'],  # 6
+    'speed': [case_speed, 'Dimmi la sua velocità '],  # 7
+    'stats': [case_stats, 'Dimmi le sue statistiche ', 'Le statistiche devono essere 6 numeri naturali maggiori di 0'],  # 8
+    'TS': [case_TS, 'Ora dimmi se il mostro ha qualche competeneza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno', 'I tiri salvezza devono essere tra questi'], # 9
+    'skills': [case_skills, 'Dimmi in cosa ha competenza ', 'Le skills devono essere tra queste'],  # 10
+    'resDanni': [case_resDanni, 'Ha qulche resistenza ai danni? ', 'Una resistenza deve riguardare un certo tipo di danno'],  # 11
+    'immDanni': [case_immDanni, 'Ha qualche immunità ai danni ', 'U\'immunità deve riguardare un certo tipo di danno'],  # 12
+    'immCondizioni': [case_immCondizioni, 'Ha qualche immunità alle condizioni? ', 'U\'immunità deve riguardare un certo tipo di condizione'],  # 13
+    'sensi': [case_sensi, 'Dimmi i suoi sensi '],  # 14
+    'linguaggi': [case_linguaggi, 'Dimmi i suoi linguaggi '],  # 15
+    'sfida': [case_sfida, 'Dimmi il suo grado sfida ', 'La sfida deve essere una di queste'],  # 16
+    'tratti': [case_tratti, 'dimmi che tratti ha con questo formato\ntitolo del tratto! descrizione del tratto'],  # 17
+    'azioni': [case_azioni, 'dimmi che azioni ha con questo formato\ntitolo del azione! descrizione del azione'],  # 18
+    'azioniLeggendarie': [case_azioni_leggendarie, 'dimmi che azioni leggendarie ha con questo formato\ntitolo dell\' azione leggendaria! descrizione dell\' azione leggendaria']
     # 19
 }
 
@@ -92,6 +92,10 @@ user_creator = {
     'componenti': componenti,  # questo è il dizionario che conterrà le statistiche del mostro
     'passaggio': 'nome'
     # ogni volta che un utente crea un mostro questa sarà la variabile che permette al bot di sapere a che punto è la creazione
+}
+
+monster_steps = {
+
 }
 
 # =======================================================================================================================

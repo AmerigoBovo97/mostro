@@ -1,18 +1,16 @@
-import telepot
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
-import sqlitedict
-from main import *
-from DataSet import *
+from telepot.namedtuple import InlineKeyboardButton, ReplyKeyboardMarkup
+from sqlFuncs import *
 from UserClass import User
+from bot import bot
 
 """Qui ci sono tutte le funzioni che un utente può richiamre trammite comando"""
 
-bot = telepot.Bot('5426218063:AAFPRWcBi7KMpHpP8mZOkGAWM4Z2yO0NVq4')
 
 
 def start(msg):
     """crea un nuovo utente se già non è registrato"""
 
+    from theDatas import user_creator
     new_id = msg['chat']['id']
     new_obj = user_creator
     new_obj['chat_id'] = new_id
@@ -48,6 +46,7 @@ def new_mostro(msg):
 def monster_step(msg):
     """raccoglie dall'utente le informazioni del mostro"""
 
+    import theDatas
     chat_id = msg['chat']['id']
     text = msg['text']
     user = load(chat_id)
@@ -56,52 +55,52 @@ def monster_step(msg):
         case 'nome':
             user['componenti']['nome'] = text
             l = []
-            for x in tipo:
+            for x in theDatas.tipo:
                 l.append([InlineKeyboardButton(text=x, callback_data=x)])
                 keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, componenti['tipo'], reply_markup=keyboard)
+            bot.sendMessage(chat_id, theDatas.componenti['tipo'], reply_markup=keyboard)
             user['passaggio'] = 'tipo'
             changer(user)
 
         case 'tipo':
             user['componenti']['tipo'] = text
             l = []
-            for x in taglie:
+            for x in theDatas.taglie:
                 l.append([InlineKeyboardButton(text=x, callback_data=x)])
                 keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, componenti['taglia'], reply_markup=keyboard)
+            bot.sendMessage(chat_id, theDatas.componenti['taglia'], reply_markup=keyboard)
             user['passaggio'] = 'taglia'
             changer(user)
 
         case 'taglia':
             user['componenti']['taglia'] = text
             l = []
-            for x in descrittori:
+            for x in theDatas.descrittori:
                 l.append([InlineKeyboardButton(text=x, callback_data=x)])
                 keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, componenti['descrittore'], reply_markup=keyboard)
+            bot.sendMessage(chat_id, theDatas.componenti['descrittore'], reply_markup=keyboard)
             user['passaggio'] = 'descrittore'
             changer(user)
 
         case 'descrittore':
             user['componenti']['descrittore'] = text
             l = []
-            for x in allineamenti:
+            for x in theDatas.allineamenti:
                 l.append([InlineKeyboardButton(text=x, callback_data=x)])
                 keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, componenti['allineamento'], reply_markup=keyboard)
+            bot.sendMessage(chat_id, theDatas.componenti['allineamento'], reply_markup=keyboard)
             user['passaggio'] = 'allineamento'
             changer(user)
 
         case 'allineamento':
             user['componenti']['allineamento'] = text
-            bot.sendMessage(chat_id, componenti['CA'])
+            bot.sendMessage(chat_id, theDatas.componenti['CA'])
             user['passaggio'] = 'CA'
             changer(user)
 
         case 'CA':
             user['componenti']['CA'] = text
-            bot.sendMessage(chat_id, componenti['n_dadoVita'])
+            bot.sendMessage(chat_id, theDatas.componenti['n_dadoVita'])
             user['passaggio'] = 'n_dadoVita'
             changer(user)
 
@@ -110,7 +109,7 @@ def monster_step(msg):
                 user['componenti']['n_dadoVita'] = int(text)
                 if int(text) < 1:
                     raise Exception
-                bot.sendMessage(chat_id, componenti['speed'])
+                bot.sendMessage(chat_id, theDatas.componenti['speed'])
                 user['passaggio'] = 'speed'
                 changer(user)
             except:
@@ -118,7 +117,7 @@ def monster_step(msg):
 
         case 'speed':
             user['componenti']['speed'] = text
-            bot.sendMessage(chat_id, componenti['stats'])
+            bot.sendMessage(chat_id, theDatas.componenti['stats'])
             user['passaggio'] = 'stats'
             changer(user)
 
@@ -134,7 +133,7 @@ def monster_step(msg):
                         else:
                             pass
                     user['componenti']['stats'] = text
-                    bot.sendMessage(chat_id, componenti['TS'])
+                    bot.sendMessage(chat_id, theDatas.componenti['TS'])
                     user['passaggio'] = 'TS'
                     changer(user)
 
@@ -144,7 +143,7 @@ def monster_step(msg):
         case 'TS':
             if text == 'Nessuno':
                 user['componenti']['TS'] = ''
-                bot.sendMessage(chat_id, componenti['skills'])
+                bot.sendMessage(chat_id, theDatas.componenti['skills'])
                 user['passaggio'] = 'skills'
                 changer(user)
 
@@ -152,12 +151,12 @@ def monster_step(msg):
                 try:
                     text = text.split()
                     for i in text:
-                        if i not in TS:
+                        if i not in theDatas.TS:
                             raise ValueError
                         else:
                             pass
                     user['componenti']['TS'] = text
-                    bot.sendMessage(chat_id, componenti['skills'])
+                    bot.sendMessage(chat_id, theDatas.componenti['skills'])
                     user['passaggio'] = 'skills'
                     changer(user)
                 except ValueError:
@@ -166,7 +165,7 @@ def monster_step(msg):
         case 'skills':
             if text == 'nessuno':
                 user['componenti']['skills'] = ''
-                bot.sendMessage(chat_id, componenti['resDanni'])
+                bot.sendMessage(chat_id, theDatas.componenti['resDanni'])
                 user['passaggio'] = 'resDanni'
                 changer(user)
 
@@ -174,12 +173,12 @@ def monster_step(msg):
                 try:
                     text = text.split()
                     for i in text:
-                        if i not in skills:
+                        if i not in theDatas.skills:
                             raise ValueError
                         else:
                             pass
                     user['componenti']['skills'] = text
-                    bot.sendMessage(chat_id, componenti['resDanni'])
+                    bot.sendMessage(chat_id, theDatas.componenti['resDanni'])
                     user['passaggio'] = 'resDanni'
                     changer(user)
                 except ValueError:
@@ -188,19 +187,19 @@ def monster_step(msg):
         case 'resDanni':
             if text == 'nessuno':
                 user['componenti']['resDanni'] = ''
-                bot.sendMessage(chat_id, componenti['immDanni'])
+                bot.sendMessage(chat_id, theDatas.componenti['immDanni'])
                 user['passaggio'] = 'immDanni'
                 changer(user)
             else:
                 try:
                     text = text.split()
                     for i in text:
-                        if i not in danni:
+                        if i not in theDatas.danni:
                             raise ValueError
                         else:
                             pass
                     user['componenti']['resDanni'] = text
-                    bot.sendMessage(chat_id, componenti['immDanni'])
+                    bot.sendMessage(chat_id, theDatas.componenti['immDanni'])
                     user['passaggio'] = 'immDanni'
                     changer(user)
                 except ValueError:
@@ -209,19 +208,19 @@ def monster_step(msg):
         case 'immDanni':
             if text == 'nessuno':
                 user['componenti']['immDanni'] = ''
-                bot.sendMessage(chat_id, componenti['immCondizioni'])
+                bot.sendMessage(chat_id, theDatas.componenti['immCondizioni'])
                 user['passaggio'] = 'immCondizioni'
                 changer(user)
             else:
                 try:
                     text = text.split()
                     for i in text:
-                        if i not in danni:
+                        if i not in theDatas.danni:
                             raise ValueError
                         else:
                             pass
                     user['componenti']['immDanni'] = text
-                    bot.sendMessage(chat_id, componenti['immCondizioni'])
+                    bot.sendMessage(chat_id, theDatas.componenti['immCondizioni'])
                     user['passaggio'] = 'immCondizioni'
                     changer(user)
                 except ValueError:
@@ -230,19 +229,19 @@ def monster_step(msg):
         case 'immCondizioni':
             if text == 'nessuno':
                 user['componenti']['immCondizioni'] = ''
-                bot.sendMessage(chat_id, componenti['sensi'])
+                bot.sendMessage(chat_id, theDatas.componenti['sensi'])
                 user['passaggio'] = 'sensi'
                 changer(user)
             else:
                 try:
                     text = text.split()
                     for i in text:
-                        if i not in condizioni:
+                        if i not in theDatas.condizioni:
                             raise ValueError
                         else:
                             pass
                     user['componenti']['immCondizioni'] = text
-                    bot.sendMessage(chat_id, componenti['sensi'])
+                    bot.sendMessage(chat_id, theDatas.componenti['sensi'])
                     user['passaggio'] = 'sensi'
                     changer(user)
                 except ValueError:
@@ -251,30 +250,30 @@ def monster_step(msg):
         case 'sensi':
             if text == 'nessuno':
                 user['componenti']['sensi'] = ''
-                bot.sendMessage(chat_id, componenti['linguaggi'])
+                bot.sendMessage(chat_id, theDatas.componenti['linguaggi'])
                 changer(user)
             else:
                 user['componenti']['sensi'] = text
-                bot.sendMessage(chat_id, componenti['linguaggi'])
+                bot.sendMessage(chat_id, theDatas.componenti['linguaggi'])
                 changer(user)
 
         case 'linguaggi':
             if text == 'nessuno':
                 user['componenti']['linguaggi'] = '--'
-                bot.sendMessage(chat_id, componenti['sfida'])
+                bot.sendMessage(chat_id, theDatas.componenti['sfida'])
                 user['passaggio'] = 'sfida'
                 changer(user)
             else:
                 user['componenti']['linguaggi'] = text
-                bot.sendMessage(chat_id, componenti['sfida'])
+                bot.sendMessage(chat_id, theDatas.componenti['sfida'])
                 user['passaggio'] = 'sfida'
                 changer(user)
 
         case 'sfida':
             try:
-                if text in PE:
+                if text in theDatas.PE:
                     user['componenti']['sfida'] = text
-                    bot.sendMessage(chat_id, componenti['tratti'])
+                    bot.sendMessage(chat_id, theDatas.componenti['tratti'])
                     user['passaggio'] = 'tratti'
                     changer(user)
                 else:
@@ -289,7 +288,7 @@ def monster_step(msg):
                 bot.sendMessage(chat_id, 'se vuoi aggiungere altri tratti fallo altrimenti scrivi: Basta')
                 changer(user)
             else:
-                bot.sendMessage(chat_id, componenti['azioni'])
+                bot.sendMessage(chat_id, theDatas.componenti['azioni'])
                 user['passaggio'] = 'azioni'
                 changer(user)
 
@@ -300,7 +299,7 @@ def monster_step(msg):
                 bot.sendMessage(chat_id, 'se vuoi aggiungere altre azioni fallo altrimenti scrivi: Basta')
                 changer(user)
             else:
-                bot.sendMessage(chat_id, componenti['azioni leggendarie'])
+                bot.sendMessage(chat_id, theDatas.componenti['azioni leggendarie'])
                 user['passaggio'] = 'azioni leggendarie'
                 changer(user)
 
@@ -311,5 +310,5 @@ def monster_step(msg):
                 bot.sendMessage(chat_id, 'se vuoi aggiungere altre azioni leggendarie fallo altrimenti scrivi: Basta')
                 changer(user)
             else:
-                bot.sendMessage(chat_id, componenti[
+                bot.sendMessage(chat_id, theDatas.componenti[
                     'ottimo hai completato tutti i passaggi e ora ecco qui il tuo mostro personalizzato'])

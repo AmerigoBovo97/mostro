@@ -1,41 +1,20 @@
-from sqlitedict import SqliteDict
-from DataSet import *
+import telepot
 import time
+from sqlFuncs import *
+from bot import bot
 
 """In questo file ci sono tutte le funzioni di sistema"""
 
 
-def save(key, value, cache_file='utenti.sqlite3'):
-    """Questa funzione permette di salvare ugni istanza su un file"""
-
-    try:
-        with SqliteDict(cache_file) as mydict:
-            mydict[key] = value  # Using dict[key] to store
-            mydict.commit()  # Need to commit() to actually flush the data
-    except Exception as ex:
-        print("Error during storing data save (Possibly unsupported):", ex)
 
 
-def load(key, cache_file='utenti.sqlite3'):
-    """Questa funzione permette di scaricare un dizionario che rappresenta un'istanza salvata in precedenza"""
-
-    try:
-        with SqliteDict(cache_file) as mydict:
-            value = mydict[key]  # No need to use commit(), since we are only loading data!
-        return vars(value)
-    except Exception as ex:
-        print("Error during loading data load:", ex)
-
-
-def changer(dict):
-    new_istance = User(dict)
-    save(dict['chat_id'], new_istance)
-    del new_istance
 
 
 def on_chat_message(msg):
     """richiama una funzione dal messaggio testuale dell'utente"""
 
+    import theDatas
+    from FunzioniUtente import monster_step
     chat_id = msg['chat']['id']
     text = msg['text']
     try:
@@ -43,8 +22,8 @@ def on_chat_message(msg):
         print(obj)
     except:
         print('Errore nel loading')
-    if text in funcs:
-        funcs[msg['text']](msg)
+    if text in theDatas.funcs:
+        theDatas.funcs[msg['text']](msg)
     elif not obj['monster_creator']:
         monster_step(msg)
     else:
@@ -71,3 +50,7 @@ def runner():
 
 
 runner()
+
+
+
+
