@@ -1,5 +1,6 @@
 from sqlitedict import SqliteDict
 from UserClass import User
+from prettytable import PrettyTable
 
 
 
@@ -29,3 +30,31 @@ def changer(dict):
     new_istance = User(dict)
     save(dict['chat_id'], new_istance)
     del new_istance
+
+
+def next_step(step):
+    """ritorna lo step successivo da assegnare a: user['passaggio']"""
+
+    from theDatas import componenti
+    cul = [x for x in componenti.keys()]
+    return cul[cul.index(step) + 1]
+
+
+def setter(user, step, text):
+    """assegna nuovi valori a user['conmponenti'] e user['passaggio'] per poi salvarli"""
+
+    user['componenti'][step]['text'] = str(text)
+    user['passaggio'] = next_step(step)
+    changer(user)
+
+
+def table_creator(obj):
+    """crea uo oggetto tabella con gli attributi che interessano e li printa"""
+
+    obj_table = PrettyTable()
+    obj_table.field_names = ['KEY', 'VALUE']
+    obj_table.add_row(['monster_creator', obj['monster_creator']])
+    obj_table.add_row(['passaggio', obj['passaggio']])
+    for x in obj['componenti']:
+        obj_table.add_row([x, obj['componenti'][x]['text']])
+    print(obj_table)
