@@ -1,13 +1,7 @@
-import telepot
 import time
-from sqlFuncs import *
+from SistemFuctons import *
 from bot import bot
-
-"""In questo file ci sono tutte le funzioni di sistema"""
-
-
-
-
+"""In questo file ci sono le funzioni principali del bot"""
 
 
 def on_chat_message(msg):
@@ -19,7 +13,6 @@ def on_chat_message(msg):
     text = msg['text']
     try:
         obj = load(chat_id)
-        print(obj)
     except:
         print('Errore nel loading')
     if text in theDatas.funcs:
@@ -50,6 +43,8 @@ def runner():
 
 
 runner()
+
+
 
 
 

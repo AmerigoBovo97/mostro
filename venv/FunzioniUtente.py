@@ -1,5 +1,5 @@
 from telepot.namedtuple import InlineKeyboardButton, ReplyKeyboardMarkup
-from sqlFuncs import *
+from SistemFuctons import *
 from UserClass import User
 from bot import bot
 
@@ -15,7 +15,6 @@ def start(msg):
     new_obj = user_creator
     new_obj['chat_id'] = new_id
     try:
-        print('merda')
         with SqliteDict('utenti.sqlite3') as mydict:
             if new_id in mydict:
                 print('utente gia esistente')
@@ -50,265 +49,98 @@ def monster_step(msg):
     chat_id = msg['chat']['id']
     text = msg['text']
     user = load(chat_id)
+    step = user['passaggio']
 
-    match user['passaggio']:
-        case 'nome':
-            user['componenti']['nome'] = text
-            l = []
-            for x in theDatas.tipo:
-                l.append([InlineKeyboardButton(text=x, callback_data=x)])
-                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, theDatas.componenti['tipo'], reply_markup=keyboard)
-            user['passaggio'] = 'tipo'
-            changer(user)
+    try:
+        match step:
+            case 'nome'|'tipo'|'taglia'|'descrittore':
+                setter(user, step, text)
+                next_step(step)
+                bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'], reply_markup=theDatas.keyboard_bottom[next_step(step)])
 
-        case 'tipo':
-            user['componenti']['tipo'] = text
-            l = []
-            for x in theDatas.taglie:
-                l.append([InlineKeyboardButton(text=x, callback_data=x)])
-                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, theDatas.componenti['taglia'], reply_markup=keyboard)
-            user['passaggio'] = 'taglia'
-            changer(user)
+            case 'allineamento'|'CA'|'speed':
+                setter(user, step, text)
+                next_step(step)
+                bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
 
-        case 'taglia':
-            user['componenti']['taglia'] = text
-            l = []
-            for x in theDatas.descrittori:
-                l.append([InlineKeyboardButton(text=x, callback_data=x)])
-                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, theDatas.componenti['descrittore'], reply_markup=keyboard)
-            user['passaggio'] = 'descrittore'
-            changer(user)
-
-        case 'descrittore':
-            user['componenti']['descrittore'] = text
-            l = []
-            for x in theDatas.allineamenti:
-                l.append([InlineKeyboardButton(text=x, callback_data=x)])
-                keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
-            bot.sendMessage(chat_id, theDatas.componenti['allineamento'], reply_markup=keyboard)
-            user['passaggio'] = 'allineamento'
-            changer(user)
-
-        case 'allineamento':
-            user['componenti']['allineamento'] = text
-            bot.sendMessage(chat_id, theDatas.componenti['CA'])
-            user['passaggio'] = 'CA'
-            changer(user)
-
-        case 'CA':
-            user['componenti']['CA'] = text
-            bot.sendMessage(chat_id, theDatas.componenti['n_dadoVita'])
-            user['passaggio'] = 'n_dadoVita'
-            changer(user)
-
-        case 'n_dadoVita':
-            try:
-                user['componenti']['n_dadoVita'] = int(text)
-                if int(text) < 1:
-                    raise Exception
-                bot.sendMessage(chat_id, theDatas.componenti['speed'])
-                user['passaggio'] = 'speed'
-                changer(user)
-            except:
-                bot.sendMessage(chat_id, 'Il numero di dadi vita deve essere un numero intero maggiore di 0')
-
-        case 'speed':
-            user['componenti']['speed'] = text
-            bot.sendMessage(chat_id, theDatas.componenti['stats'])
-            user['passaggio'] = 'stats'
-            changer(user)
-
-        case 'stats':
-            try:
-                text = [int(i) for i in text.split()]
-                if len(text) != 6:
-                    raise ValueError
+            case 'n_dadoVita':
+                if int(text) > 0:
+                    setter(user, step, text)
+                    next_step(step)
+                    bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
                 else:
-                    for i in text:
-                        if i < 1:
-                            raise ValueError
-                        else:
-                            pass
-                    user['componenti']['stats'] = text
-                    bot.sendMessage(chat_id, theDatas.componenti['TS'])
-                    user['passaggio'] = 'TS'
-                    changer(user)
+                    bot.sendMessage(chat_id, theDatas.componenti[step]['errore'])
 
-            except ValueError:
-                bot.sendMessage(chat_id, 'le statistiche devonon essere 6 numeri interi maggiori di 0 e possibilimente minori di 31')
-
-        case 'TS':
-            if text == 'Nessuno':
-                user['componenti']['TS'] = ''
-                bot.sendMessage(chat_id, theDatas.componenti['skills'])
-                user['passaggio'] = 'skills'
-                changer(user)
-
-            else:
+            case 'stats':
                 try:
-                    text = text.split()
-                    for i in text:
-                        if i not in theDatas.TS:
-                            raise ValueError
-                        else:
-                            pass
-                    user['componenti']['TS'] = text
-                    bot.sendMessage(chat_id, theDatas.componenti['skills'])
-                    user['passaggio'] = 'skills'
-                    changer(user)
+                    text = [int(i) for i in text.split()]
+                    if len(text) != 6:
+                        raise ValueError
+                    else:
+                        for i in text:
+                            if i < 1:
+                                raise ValueError
+                            else:
+                                pass
+                        setter(user, step, text)
+                        next_step(step)
+                        bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
                 except ValueError:
-                    bot.sendMessage(chat_id, 'i tiri salvezza devono essere questi: For Des Cos Int Sag Car')
+                    bot.sendMessage(chat_id, theDatas.componenti[step]['errore'])
 
-        case 'skills':
-            if text == 'nessuno':
-                user['componenti']['skills'] = ''
-                bot.sendMessage(chat_id, theDatas.componenti['resDanni'])
-                user['passaggio'] = 'resDanni'
-                changer(user)
-
-            else:
-                try:
-                    text = text.split()
-                    for i in text:
-                        if i not in theDatas.skills:
-                            raise ValueError
-                        else:
-                            pass
-                    user['componenti']['skills'] = text
-                    bot.sendMessage(chat_id, theDatas.componenti['resDanni'])
-                    user['passaggio'] = 'resDanni'
-                    changer(user)
-                except ValueError:
-                    bot.sendMessage(chat_id, 'le skills che un mostro puo avere sono queste')
-
-        case 'resDanni':
-            if text == 'nessuno':
-                user['componenti']['resDanni'] = ''
-                bot.sendMessage(chat_id, theDatas.componenti['immDanni'])
-                user['passaggio'] = 'immDanni'
-                changer(user)
-            else:
-                try:
-                    text = text.split()
-                    for i in text:
-                        if i not in theDatas.danni:
-                            raise ValueError
-                        else:
-                            pass
-                    user['componenti']['resDanni'] = text
-                    bot.sendMessage(chat_id, theDatas.componenti['immDanni'])
-                    user['passaggio'] = 'immDanni'
-                    changer(user)
-                except ValueError:
-                    bot.sendMessage(chat_id, 'i tipi di danni possibili sono questi')
-
-        case 'immDanni':
-            if text == 'nessuno':
-                user['componenti']['immDanni'] = ''
-                bot.sendMessage(chat_id, theDatas.componenti['immCondizioni'])
-                user['passaggio'] = 'immCondizioni'
-                changer(user)
-            else:
-                try:
-                    text = text.split()
-                    for i in text:
-                        if i not in theDatas.danni:
-                            raise ValueError
-                        else:
-                            pass
-                    user['componenti']['immDanni'] = text
-                    bot.sendMessage(chat_id, theDatas.componenti['immCondizioni'])
-                    user['passaggio'] = 'immCondizioni'
-                    changer(user)
-                except ValueError:
-                    bot.sendMessage(chat_id, 'i tipi di danni possibili sono questi')
-
-        case 'immCondizioni':
-            if text == 'nessuno':
-                user['componenti']['immCondizioni'] = ''
-                bot.sendMessage(chat_id, theDatas.componenti['sensi'])
-                user['passaggio'] = 'sensi'
-                changer(user)
-            else:
-                try:
-                    text = text.split()
-                    for i in text:
-                        if i not in theDatas.condizioni:
-                            raise ValueError
-                        else:
-                            pass
-                    user['componenti']['immCondizioni'] = text
-                    bot.sendMessage(chat_id, theDatas.componenti['sensi'])
-                    user['passaggio'] = 'sensi'
-                    changer(user)
-                except ValueError:
-                    bot.sendMessage(chat_id, 'le tipologie di condizioni sono queste')
-
-        case 'sensi':
-            if text == 'nessuno':
-                user['componenti']['sensi'] = ''
-                bot.sendMessage(chat_id, theDatas.componenti['linguaggi'])
-                changer(user)
-            else:
-                user['componenti']['sensi'] = text
-                bot.sendMessage(chat_id, theDatas.componenti['linguaggi'])
-                changer(user)
-
-        case 'linguaggi':
-            if text == 'nessuno':
-                user['componenti']['linguaggi'] = '--'
-                bot.sendMessage(chat_id, theDatas.componenti['sfida'])
-                user['passaggio'] = 'sfida'
-                changer(user)
-            else:
-                user['componenti']['linguaggi'] = text
-                bot.sendMessage(chat_id, theDatas.componenti['sfida'])
-                user['passaggio'] = 'sfida'
-                changer(user)
-
-        case 'sfida':
-            try:
-                if text in theDatas.PE:
-                    user['componenti']['sfida'] = text
-                    bot.sendMessage(chat_id, theDatas.componenti['tratti'])
-                    user['passaggio'] = 'tratti'
-                    changer(user)
+            case 'TS'|'skills'|'resDanni'|'immDanni'|'immCondizioni':
+                if text == 'Nessuno':
+                    setter(user, step, '')
+                    next_step(step)
+                    bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
                 else:
-                    raise ValueError
-            except ValueError:
-                bot.sendMessage(chat_id, 'Igor ma ti sembra possibile che {} sia la sfida di un mostro?????')
+                    try:
+                        text = text.split()
+                        print(text)
+                        for i in text:
+                            if i not in theDatas.varie[step]:
+                                raise ValueError
+                        setter(user, step, text)
+                        next_step(step)
+                        bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
+                    except ValueError:
+                        bot.sendMessage(chat_id, theDatas.componenti[step]['errore'])
 
-        case 'tratti':
-            if text != 'Basta':
-                text = text.split('!')
-                user['componenti']['tratti'][text][0] = text[1]
-                bot.sendMessage(chat_id, 'se vuoi aggiungere altri tratti fallo altrimenti scrivi: Basta')
-                changer(user)
-            else:
-                bot.sendMessage(chat_id, theDatas.componenti['azioni'])
-                user['passaggio'] = 'azioni'
-                changer(user)
+            case 'sensi'|'linguaggi':
+                if text == 'nessuno':
+                    setter(user, step, '')
+                else:
+                    setter(user, step, text)
+                next_step(step)
+                bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
 
-        case 'azioni':
-            if text != 'Basta':
-                text = text.split('!')
-                user['componenti']['azioni'][text][0] = text[1]
-                bot.sendMessage(chat_id, 'se vuoi aggiungere altre azioni fallo altrimenti scrivi: Basta')
-                changer(user)
-            else:
-                bot.sendMessage(chat_id, theDatas.componenti['azioni leggendarie'])
-                user['passaggio'] = 'azioni leggendarie'
-                changer(user)
+            case 'sfida':
+                try:
+                    if text in theDatas.PE:
+                        setter(user, step, text)
+                        next_step(step)
+                        bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
+                    else:
+                        raise ValueError
+                except ValueError:
+                    bot.sendMessage(chat_id, theDatas.componenti[step]['errore'])
 
-        case 'azioni leggendarie':
-            if text != 'Basta':
-                text = text.split('!')
-                user['componenti']['azioni leggendarie'][text][0] = text[1]
-                bot.sendMessage(chat_id, 'se vuoi aggiungere altre azioni leggendarie fallo altrimenti scrivi: Basta')
-                changer(user)
-            else:
-                bot.sendMessage(chat_id, theDatas.componenti[
-                    'ottimo hai completato tutti i passaggi e ora ecco qui il tuo mostro personalizzato'])
+            case 'tratti'|'azioni'|'azioni leggendarie':
+                if text != 'Basta':
+                    text = text.split('!')
+                    user['componenti'][step]['text'].append({text[0]: text[1]})
+                    changer(user)
+                    next_step(step)
+                    if step != 'azioni leggendarie':
+                        bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
+                    else:
+                        bot.sendMessage(chat_id, 'ottimo hai completato tutti i passaggi e ora ecco qui il tuo mostro personalizzato')
+                else:
+                    bot.sendMessage(chat_id, theDatas.componenti['azioni'])
+                    next_step(step)
+                    bot.sendMessage(chat_id, theDatas.componenti[next_step(step)]['richiesta'])
+
+    except Exception as x:
+        print(x)
+        pass
+    table_creator(user)
