@@ -1,7 +1,7 @@
-from SistemFuctions import *
-from UserClass import User
-from bot import bot
-from theDatas import *
+from Mostri_definitivo.venv.script.SistemFuctions import *
+from Mostri_definitivo.venv.script.UserClass import User
+from Mostri_definitivo.venv.script.bot import bot
+from Mostri_definitivo.venv.script.theDatas import *
 
 """Qui ci sono tutte le funzioni che un utente può richiamre trammite comando"""
 

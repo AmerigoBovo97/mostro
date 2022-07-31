@@ -1,7 +1,4 @@
 import time
-from SistemFuctions import *
-from bot import bot
-from theDatas import *
 from UserFunctions import *
 """In questo file ci sono le funzioni principali del bot"""
 

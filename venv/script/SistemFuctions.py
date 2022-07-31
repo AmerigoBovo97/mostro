@@ -1,7 +1,7 @@
 from sqlitedict import SqliteDict
 from UserClass import User
 from prettytable import PrettyTable
-from bot import bot
+from Mostri_definitivo.venv.script.bot import bot
 from theDatas import *
 
 
