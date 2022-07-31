@@ -1,5 +1,3 @@
-import FunzioniUtente
-from MonsterClass import *
 from telepot.namedtuple import InlineKeyboardButton, ReplyKeyboardMarkup
 
 """Qui ci sono tutte le liste e i dizionari che mi servono"""
@@ -133,11 +131,6 @@ condizioni = [  # qui ci sono tutte le condizioni
 # =======================================================================================================================
 """DIZIONARI"""
 
-funcs = {  # lista di funzioni richiamabili dall'utente
-    '/start': FunzioniUtente.start,
-    '/nuovo': FunzioniUtente.new_mostro
-}
-
 varie = {
     'TS': [x for x in TS],
     'skills': [x for x in skills],
@@ -194,149 +187,143 @@ PE = {  # questo è l'elenco di tutti i gradi sfida del mostro con annessi i PE 
 }
 
 monster_steps = {
-
-}
-
-keyboard_bottom = {
-    'tipo': ReplyKeyboardMarkup(
-        keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in tipo]],
-        one_time_keyboard=True
-    ),
-    'taglia': ReplyKeyboardMarkup(
-        keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in [taglie for taglie in taglie.keys()]]],
-        one_time_keyboard=True
-    ),
-    'descrittore': ReplyKeyboardMarkup(
-        keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in descrittori]],
-        one_time_keyboard=True
-    ),
-    'allineamento': ReplyKeyboardMarkup(
-        keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in allineamento]],
-        one_time_keyboard=True
-    )
-}
-
-componenti = {
     # questo dizionario contiene tutti i valori del mostro, all'izio il valore delle chiavi è il messaggio che il bot invierà come richiesta, poi verrà sostituita dall'imput dell'utente
     'nome': {  # 0
         'richiesta': 'Come si chiama il mostro? ',
         'errore': 'Il mostro deve avere un nome diverso dagli altri mostri che hai già crato',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'tipo': {  # 1
         'richiesta': 'Di che tipo è? ',
         'errore': 'Il tipo di mostro deve essere uno di questi',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': ReplyKeyboardMarkup(
+            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in tipo]],
+            one_time_keyboard=True
+        )
     },
     'taglia': {  # 2
         'richiesta': 'Dimmi la taglia ',
         'errore': 'La taglia deve essere una di queste',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': ReplyKeyboardMarkup(
+            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in [taglie for taglie in taglie.keys()]]],
+            one_time_keyboard=True
+        )
     },
     'descrittore': {  # 3
         'richiesta': 'Ha un descrittore particolare? ',
         'errore': 'il descrittore defe essere uno di questi',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': ReplyKeyboardMarkup(
+            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in descrittori]],
+            one_time_keyboard=True
+        )
     },
     'allineamento': {  # 4
         'richiesta': 'Dimmi il suo allinemanto ',
         'errore': 'L\'allineamento deve essere uno di questi',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': ReplyKeyboardMarkup(
+            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in allineamento]],
+            one_time_keyboard=True
+        )
     },
     'CA': {  # 5
         'richiesta': 'Dimmi la sua classe armatura ',
         'errore': '',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'n_dadoVita': {  # 6
         'richiesta': 'Dimmi quanti dadi vita ha ',
         'errore': 'Il numero dei dadi vita deve essere un numero naturale maggiore di 0',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'speed': {  # 7
         'richiesta': 'Dimmi la sua velocità ',
         'errore': '',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'stats': {  # 8
         'richiesta': 'Dimmi le sue statistiche ',
         'errore': 'Le statistiche devono essere 6 numeri naturali maggiori di 0',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'TS': {  # 9
         'richiesta': 'Ora dimmi se il mostro ha qualche competeneza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno',
-        'errore': 'I tiri salvezza devono essere tra questi', 'keyboard_bottom': '',
-        'text': ''
+        'errore': 'I tiri salvezza devono essere tra questi',
+        'keyboard_bottom': None
     },
     'skills': {  # 10
         'richiesta': 'Dimmi in cosa ha competenza ',
         'errore': 'Le skills devono essere tra queste',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'resDanni': {  # 11
         'richiesta': 'Ha qulche resistenza ai danni? ',
         'errore': 'Una resistenza deve riguardare un certo tipo di danno',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'immDanni': {  # 12
         'richiesta': 'Ha qualche immunità ai danni ',
         'errore': 'U\'immunità deve riguardare un certo tipo di danno',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'immCondizioni': {  # 13
         'richiesta': 'Ha qualche immunità alle condizioni? ',
         'errore': 'U\'immunità deve riguardare un certo tipo di condizione',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'sensi': {  # 14
         'richiesta': 'Dimmi i suoi sensi ',
         'errore': '',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'linguaggi': {  # 15
         'richiesta': 'Dimmi i suoi linguaggi ',
         'errore': '',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'sfida': {  # 16
         'richiesta': 'Dimmi il suo grado sfida ',
         'errore': 'La sfida deve essere una di queste',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'tratti': {  # 17
         'richiesta': 'dimmi che tratti ha con questo formato\ntitolo del tratto! descrizione del tratto',
         'errore': '',
-        'keyboard_bottom': '',
-        'text': []
+        'keyboard_bottom': None
     },
     'azioni': {  # 18
         'richiesta': 'dimmi che azioni ha con questo formato\ntitolo del azione! descrizione del azione',
         'errore': '',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     },
     'azioniLeggendarie': {  # 19
         'richiesta': 'dimmi che azioni leggendarie ha con questo formato\ntitolo dell\' azione leggendaria! descrizione dell\' azione leggendaria',
         'errore': '',
-        'keyboard_bottom': '',
-        'text': ''
+        'keyboard_bottom': None
     }
+}
+
+componenti = {
+    # questo dizionario contiene tutti i valori del mostro, all'izio il valore delle chiavi è il messaggio che il bot invierà come richiesta, poi verrà sostituita dall'imput dell'utente
+    'nome': '',
+    'tipo': '',
+    'taglia': '',
+    'descrittore': '',
+    'allineamento': '',
+    'CA': '',
+    'n_dadoVita': '',
+    'speed': '',
+    'stats': '',
+    'TS': '',
+    'skills': '',
+    'resDanni': '',
+    'immDanni': '',
+    'immCondizioni': '',
+    'sensi': '',
+    'linguaggi': '',
+    'sfida': '',
+    'tratti': [],
+    'azioni': [],
+    'azioniLeggendarie': []
 }
 
 user_creator = {

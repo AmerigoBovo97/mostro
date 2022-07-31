@@ -1,22 +1,22 @@
 import time
-from SistemFuctons import *
+from SistemFuctions import *
 from bot import bot
+from theDatas import *
+from UserFunctions import *
 """In questo file ci sono le funzioni principali del bot"""
 
 
 def on_chat_message(msg):
     """richiama una funzione dal messaggio testuale dell'utente"""
 
-    import theDatas
-    from FunzioniUtente import monster_step
     chat_id = msg['chat']['id']
     text = msg['text']
     try:
         obj = load(chat_id)
     except:
         print('Errore nel loading')
-    if text in theDatas.funcs:
-        theDatas.funcs[msg['text']](msg)
+    if text in funcs:
+        funcs[msg['text']](msg)
     elif not obj['monster_creator']:
         monster_step(msg)
     else:

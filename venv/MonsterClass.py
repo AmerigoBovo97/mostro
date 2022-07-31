@@ -233,7 +233,7 @@ def case_nome(chat_id, text, user):
 def case_tipo(chat_id, text, user):
     user['componenti']['tipo'] = text
     l = []
-    for x in taglia.keys():
+    for x in taglie.keys():
         l.append([InlineKeyboardButton(text=x, callback_data=x)])
         keyboard = ReplyKeyboardMarkup(keyboard=[p for p in l], one_time_keyboard=True)
     bot.sendMessage(chat_id, componenti['taglia'], reply_markup=keyboard)
