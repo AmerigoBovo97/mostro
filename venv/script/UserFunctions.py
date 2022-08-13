@@ -1,7 +1,8 @@
 from Mostri_definitivo.venv.script.SistemFuctions import *
-from Mostri_definitivo.venv.script.UserClass import User
 from Mostri_definitivo.venv.script.bot import bot
 from Mostri_definitivo.venv.script.theDatas import *
+from telepot import flavor
+from os import path
 
 """Qui ci sono tutte le funzioni che un utente può richiamre trammite comando"""
 
@@ -10,23 +11,16 @@ def start(msg):
     """crea un nuovo utente se già non è registrato"""
 
     new_id = msg['chat']['id']
-    new_obj = user_creator
-    new_obj['chat_id'] = new_id
-    try:
-        with SqliteDict('utenti.sqlite3') as mydict:
-            if new_id in mydict:
-                print('utente gia esistente')
-                bot.sendMessage(new_id, 'bentornato')
-            else:
-                user = User(new_obj)
-                save(new_id, user)
-                print('nuovo utente registrato')
-                bot.sendMessage(new_id, 'benvenuto')
-    except:
-        user = User(new_obj)
-        save(new_id, user)
-        print('nuovo utente registrato')
-        bot.sendMessage(new_id, 'benvenuto')
+    new_user = user_creator
+    new_user['chat_id'] = new_id
+    if path.exists(f'utenti/{new_id}.json'):
+        print('si esiste')
+        bot.sendMessage(new_id, f'Bentornato J, {new_id}')
+    else:
+        print('non esiste')
+
+        save(new_user)
+        bot.sendMessage(new_id, f'Benvenuto J, {new_id}')
 
 
 def new_mostro(msg):
@@ -37,45 +31,28 @@ def new_mostro(msg):
     bot.sendMessage(chat_id, 'questo è il primo passaggio per creare un nuovo mostro, dimmi il nome che gli vuoi dare')
     user['monster_creator'] = False
     user['passaggio'] = 'nome'
-    changer(user)
+    save(user)
 
 
 def monster_step(msg):
     """raccoglie dall'utente le informazioni del mostro"""
 
-    chat_id = msg['chat']['id']
+    if flavor(msg) == 'chat':
+        chat_id = msg['chat']['id']
+        text = msg['text']
+    elif flavor(msg) == 'callback_query':
+        chat_id = msg['message']['chat']['id']
+        text = msg['data']
+    else:
+        raise Exception('il flavour è sbagliato')
+
     user = load(chat_id)
     step = user['passaggio']
-    text = msg['text']
 
     try:
         match step:
-            case 'nome' | 'tipo' | 'taglia' | 'descrittore' | 'allineamento' | 'CA' | 'speed':
+            case 'nome' | 'tipo' | 'taglia' | 'allineamento' | 'CA' | 'n_dadoVita' | 'speed' | 'stats' | 'sfida':
                 setter_requester(user, step, text, chat_id)
-
-            case 'n_dadoVita':
-                try:
-                    if int(text) > 0:
-                        setter_requester(user, step, text, chat_id)
-                    else:
-                        raise ValueError
-                except ValueError:
-                    bot.sendMessage(chat_id, monster_steps[step]['errore'])
-
-            case 'stats':
-                try:
-                    text = [int(i) for i in text.split()]
-                    if len(text) != 6:
-                        raise ValueError
-                    else:
-                        for i in text:
-                            if i < 1:
-                                raise ValueError
-                            else:
-                                pass
-                        setter_requester(user, step, text, chat_id)
-                except ValueError:
-                    bot.sendMessage(chat_id, monster_steps[step]['errore'])
 
             case 'TS' | 'skills' | 'resDanni' | 'immDanni' | 'immCondizioni':
                 if text == 'Nessuno':
@@ -91,26 +68,17 @@ def monster_step(msg):
                     except ValueError:
                         bot.sendMessage(chat_id, monster_steps[step]['errore'])
 
-            case 'sensi' | 'linguaggi':
+            case 'sensi' | 'linguaggi' | 'descrittore':
                 if text == 'nessuno':
-                    setter_requester(user, step, 'text', chat_id)
+                    setter_requester(user, step, '', chat_id)
                 else:
                     setter_requester(user, step, text, chat_id)
-
-            case 'sfida':
-                try:
-                    if text in PE:
-                        setter_requester(user, step, text, chat_id)
-                    else:
-                        raise ValueError
-                except ValueError:
-                    bot.sendMessage(chat_id, monster_steps[step]['errore'])
 
             case 'tratti' | 'azioni' | 'azioni leggendarie':
                 if text != 'Basta':
                     text = text.split('!')
                     user['componenti'][step]['text'].append({text[0]: text[1]})
-                    changer(user)
+                    save(user)
                     next_step(step)
                     if step != 'azioni leggendarie':
                         bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'])
@@ -125,7 +93,7 @@ def monster_step(msg):
     except Exception as x:
         print(x)
         pass
-    table_creator(user)
+    #table_creator(user)
 
 
 funcs = {  # lista di funzioni richiamabili dall'utente

@@ -1,4 +1,6 @@
-from telepot.namedtuple import InlineKeyboardButton, ReplyKeyboardMarkup
+from telepot.namedtuple import InlineKeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
+
+
 
 """Qui ci sono tutte le liste e i dizionari che mi servono"""
 
@@ -26,6 +28,7 @@ tipo = [
 
 descrittori = [
     # qui ci sono tutti i descrittori dei mostri, in futuro implementerò la possibilità di aggiungerne alcuni personalizzati dall'utente
+    'nessuno',
     'orco',
     'aarakocra)',
     'goblinoide',
@@ -66,36 +69,6 @@ allineamento = [  # qui ci sono tutti i vari allineamenti possibili
     'Senza Allineamento'
 ]
 
-TS = [  # qui ci sono i tiri salvezza dei mostri
-    'For',
-    'Des',
-    'Cos',
-    'Int',
-    'Sag',
-    'Car'
-]
-
-skills = [  # qui ci sono tutte le skills che un mostro puo avere
-    'Atletica',
-    'Acrobazia',
-    'Furtività',
-    'Rapidità do mano',
-    'Arcano',
-    'Investigare',
-    'Natura',
-    'Religione',
-    'Storia',
-    'Empatia animale',
-    'intuizione',
-    'Medicina',
-    'Percezione',
-    'Sopravvienza',
-    'Intimidre',
-    'Ingannare',
-    'Intrattenere',
-    'Persuadere'
-]
-
 danni = [  # qui ci sono tutte le tipologie di danni
     'Taglienti',
     'Contundenti',
@@ -128,15 +101,96 @@ condizioni = [  # qui ci sono tutte le condizioni
     'Trattenuto'
 ]
 
+lingue = [
+    'comune',
+    'elfico',
+    'gigante',
+    'gnomesco',
+    'goblin',
+    'halfling',
+    'nanico',
+    'orchesco',
+    'abissale',
+    'celestiale',
+    'draconico',
+    'gergo delle profondità',
+    'infernale',
+    'primordiale',
+    'acquan (dialetto primordiale)',
+    'auran (dialetto primordiale)',
+    'ignan (dialetto primordiale)',
+    'terran (dialetto primordiale)',
+    'silvano',
+    'sottocomune',
+    'Daelkyr',
+    'Gith',
+    'Grung',
+    'Kraul',
+    'Loross',
+    'Lossodontico',
+    'Marinide',
+    'Minotaurico',
+    'Modron',
+    'Netherese',
+    'Otyugh',
+    'Qualith',
+    'Quori',
+    'Riedran',
+    'Sahuagin',
+    'Slaad',
+    'Thri-kreen',
+    'Tlincalli',
+    'Troglodita',
+    'Umber Hulk',
+    'Vedalken',
+    'Worg',
+    'Yeti',
+    'Yikaria',
+    'Zemnian'
+]
+
 # =======================================================================================================================
 """DIZIONARI"""
 
+skills = {
+    'For': [
+        'Atletica'
+    ],
+    'Des': [
+        'Acrobazia',
+        'Furtività',
+        'Rapidità di mano'
+    ],
+    'Cos': [
+
+    ],
+    'Int': [
+        'Arcano',
+        'Investigare',
+        'Natura',
+        'Religione',
+        'Storia'
+    ],
+    'Sag': [
+        'Empatia animale',
+        'Intuizione',
+        'Medicina',
+        'Percezione',
+        'Sopravvivenza'
+    ],
+    'Car': [
+        'Intimidire',
+        'Ingannare',
+        'Intrattenere',
+        'Persuadere'
+    ],
+}
+
 varie = {
-    'TS': [x for x in TS],
-    'skills': [x for x in skills],
-    'resDanni': [x for x in danni],
-    'immDanni': [x for x in danni],
-    'immCondizioni': [x for x in condizioni],
+    'skills': (x for x in skills.values()),
+    'resDanni': (x for x in danni),
+    'immDanni': (x for x in danni),
+    'immCondizioni': (x for x in condizioni),
 
 }
 
@@ -191,114 +245,138 @@ monster_steps = {
     'nome': {  # 0
         'richiesta': 'Come si chiama il mostro? ',
         'errore': 'Il mostro deve avere un nome diverso dagli altri mostri che hai già crato',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True if text not in user['mostri'] else False
     },
     'tipo': {  # 1
         'richiesta': 'Di che tipo è? ',
         'errore': 'Il tipo di mostro deve essere uno di questi',
         'keyboard_bottom': ReplyKeyboardMarkup(
-            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in tipo]],
+            keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in tipo],
             one_time_keyboard=True
-        )
+        ),
+        'condizione': lambda text, user: True if text in tipo else False
     },
     'taglia': {  # 2
         'richiesta': 'Dimmi la taglia ',
         'errore': 'La taglia deve essere una di queste',
         'keyboard_bottom': ReplyKeyboardMarkup(
-            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in [taglie for taglie in taglie.keys()]]],
+            keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in [taglie for taglie in taglie.keys()]],
             one_time_keyboard=True
-        )
+        ),
+        'condizione': lambda text, user: True if text in taglie.keys() else False
     },
     'descrittore': {  # 3
         'richiesta': 'Ha un descrittore particolare? ',
         'errore': 'il descrittore defe essere uno di questi',
-        'keyboard_bottom': ReplyKeyboardMarkup(
-            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in descrittori]],
-            one_time_keyboard=True
-        )
+        'keyboard_bottom': InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (tipo + ['nessuno'])]
+        ),
+        'condizione': lambda text, user: True if text in descrittori or text == 'nessuno' else False,
     },
     'allineamento': {  # 4
         'richiesta': 'Dimmi il suo allinemanto ',
         'errore': 'L\'allineamento deve essere uno di questi',
         'keyboard_bottom': ReplyKeyboardMarkup(
-            keyboard=[p for p in [[InlineKeyboardButton(text=x, callback_data=x)] for x in allineamento]],
+            keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in allineamento],
             one_time_keyboard=True
-        )
+        ),
+        'condizione': lambda text, user: True if text in allineamento else False
     },
     'CA': {  # 5
         'richiesta': 'Dimmi la sua classe armatura ',
         'errore': '',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'n_dadoVita': {  # 6
         'richiesta': 'Dimmi quanti dadi vita ha ',
         'errore': 'Il numero dei dadi vita deve essere un numero naturale maggiore di 0',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True if int(text) > 0 else False
     },
     'speed': {  # 7
         'richiesta': 'Dimmi la sua velocità ',
         'errore': '',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'stats': {  # 8
         'richiesta': 'Dimmi le sue statistiche ',
         'errore': 'Le statistiche devono essere 6 numeri naturali maggiori di 0',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True if len(filter(lambda stat: (int(stat) > 0), text.split())) == 6 else False
     },
     'TS': {  # 9
         'richiesta': 'Ora dimmi se il mostro ha qualche competeneza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno',
         'errore': 'I tiri salvezza devono essere tra questi',
-        'keyboard_bottom': None
+        'keyboard_bottom': InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in skills.keys()]
+        ),
+        'condizione': lambda text, user: True
     },
     'skills': {  # 10
         'richiesta': 'Dimmi in cosa ha competenza ',
         'errore': 'Le skills devono essere tra queste',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'resDanni': {  # 11
         'richiesta': 'Ha qulche resistenza ai danni? ',
         'errore': 'Una resistenza deve riguardare un certo tipo di danno',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'immDanni': {  # 12
         'richiesta': 'Ha qualche immunità ai danni ',
         'errore': 'U\'immunità deve riguardare un certo tipo di danno',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'immCondizioni': {  # 13
         'richiesta': 'Ha qualche immunità alle condizioni? ',
         'errore': 'U\'immunità deve riguardare un certo tipo di condizione',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'sensi': {  # 14
         'richiesta': 'Dimmi i suoi sensi ',
         'errore': '',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'linguaggi': {  # 15
         'richiesta': 'Dimmi i suoi linguaggi ',
         'errore': '',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'sfida': {  # 16
         'richiesta': 'Dimmi il suo grado sfida ',
         'errore': 'La sfida deve essere una di queste',
-        'keyboard_bottom': None
+        'keyboard_bottom': ReplyKeyboardMarkup(
+            keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in PE],
+            one_time_keyboard=True
+        ),
+        'condizione': lambda text, user: True if text in PE else False
     },
     'tratti': {  # 17
         'richiesta': 'dimmi che tratti ha con questo formato\ntitolo del tratto! descrizione del tratto',
         'errore': '',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'azioni': {  # 18
         'richiesta': 'dimmi che azioni ha con questo formato\ntitolo del azione! descrizione del azione',
         'errore': '',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     },
     'azioniLeggendarie': {  # 19
         'richiesta': 'dimmi che azioni leggendarie ha con questo formato\ntitolo dell\' azione leggendaria! descrizione dell\' azione leggendaria',
         'errore': '',
-        'keyboard_bottom': None
+        'keyboard_bottom': None,
+        'condizione': lambda text, user: True
     }
 }
 

@@ -1,5 +1,6 @@
 import time
 from UserFunctions import *
+import pprint
 """In questo file ci sono le funzioni principali del bot"""
 
 
@@ -21,7 +22,10 @@ def on_chat_message(msg):
 
 
 def on_callback_query(msg):
-    print('sasso')
+
+    chat_id = msg['message']['chat']['id']
+    text = msg['data']
+    bot.sendMessage(chat_id, f'hai scelto {text} come descrittore')
 
 
 def runner():
@@ -39,10 +43,5 @@ def runner():
             time.sleep(1)
 
 
-runner()
-
-
-
-
-
-
+if __name__ == "__main__":
+    runner()

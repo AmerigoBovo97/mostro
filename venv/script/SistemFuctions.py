@@ -1,36 +1,18 @@
-from sqlitedict import SqliteDict
-from UserClass import User
 from prettytable import PrettyTable
 from Mostri_definitivo.venv.script.bot import bot
 from theDatas import *
+import json
 
 
-def save(key, value, cache_file='utenti.sqlite3'):
-    """Questa funzione permette di salvare ugni istanza su un file"""
-
-    try:
-        with SqliteDict(cache_file) as mydict:
-            mydict[key] = value  # Using dict[key] to store
-            mydict.commit()  # Need to commit() to actually flush the data
-    except Exception as ex:
-        print("Error during storing data save (Possibly unsupported):", ex)
+def save(user):
+    chat_id = user['chat_id']
+    with open(f'utenti/{chat_id}.json', 'w') as f:
+        json.dump(user, f, indent=4)
 
 
-def load(key, cache_file='utenti.sqlite3'):
-    """Questa funzione permette di scaricare un dizionario che rappresenta un'istanza salvata in precedenza"""
-
-    try:
-        with SqliteDict(cache_file) as mydict:
-            value = mydict[key]  # No need to use commit(), since we are only loading data!
-        return vars(value)
-    except Exception as ex:
-        print("Error during loading data load:", ex)
-
-
-def changer(dict):
-    new_istance = User(dict)
-    save(dict['chat_id'], new_istance)
-    del new_istance
+def load(chat_id):
+    with open(f'utenti/{chat_id}.json', 'r') as f:
+        return dict(json.load(f))
 
 
 def next_step(step):
@@ -41,15 +23,15 @@ def next_step(step):
 
 
 def setter(user, step, text):
-    """assegna nuovi valori a user['conmponenti'] e user['passaggio'] per poi salvarli"""
+    """assegna nuovi valori a user['componenti'] e user['passaggio'] per poi salvarli"""
 
     user['componenti'][step] = text
     user['passaggio'] = next_step(step)
-    changer(user)
+    save(user)
 
 
 def table_creator(obj):
-    """crea uo oggetto tabella con gli attributi che interessano e li printa"""
+    """2crea uo oggetto tabella con gli attributi che interessano e li printa"""
 
     obj_table = PrettyTable()
     obj_table.field_names = ['KEY', 'VALUE']
@@ -61,8 +43,15 @@ def table_creator(obj):
 
 
 def setter_requester(user, step, text, chat_id):
-    """oltre che a richiamre la modifica di un componenten invia anche all'utente il maessaggio di richiesta nuovo componente"""
+    """oltre che a richiamre la modifica di un componente invia anche all'utente il messaggio di richiesta nuovo componente"""
 
-    setter(user, step, text)
-    bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'],
-                    reply_markup= monster_steps[next_step(step)]['keyboard_bottom'])
+    if monster_steps[step]['condizione'](text, user):
+        setter(user, step, text)
+        bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'],
+                        reply_markup=monster_steps[next_step(step)]['keyboard_bottom'])
+    else:
+        bot.sendMessage(chat_id, monster_steps[step]['errore'],
+                        reply_markup=monster_steps[step]['keyboard_bottom'])
+
+
+
