@@ -2,3 +2,4 @@ Lib/
 Scripts/
 pyvenv.cfg
 script/utenti.sqlite3
+script/utenti

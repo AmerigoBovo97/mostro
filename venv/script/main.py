@@ -1,6 +1,7 @@
 import time
 from UserFunctions import *
-import pprint
+from telepot.namedtuple import InlineKeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
+import time
 """In questo file ci sono le funzioni principali del bot"""
 
 
@@ -13,12 +14,13 @@ def on_chat_message(msg):
         obj = load(chat_id)
     except:
         print('Errore nel loading')
-    if text in funcs:
-        funcs[msg['text']](msg)
-    elif not obj['monster_creator']:
-        monster_step(msg)
-    else:
-        bot.sendMessage(chat_id, 'questo comando non esiste')
+    finally:
+        if text in funcs:
+            funcs[msg['text']](msg)
+        elif not obj['monster_creator']:
+            monster_step(msg)
+        else:
+            bot.sendMessage(chat_id, 'questo comando non esiste')
 
 
 def on_callback_query(msg):
@@ -26,6 +28,18 @@ def on_callback_query(msg):
     chat_id = msg['message']['chat']['id']
     text = msg['data']
     bot.sendMessage(chat_id, f'hai scelto {text} come descrittore')
+    obj = load(chat_id)
+    query_func, query_step, query_text = text.split('!')
+    if query_func == '/set':
+        setter(obj, query_step, query_text)
+    if obj['inline_msg_identifier']:
+        step = obj['passaggio']
+        modifier = []
+        msg_id1, mag_id2 = obj['inline_msg_identifier']
+        bot.editMessageText((msg_id1, mag_id2), monster_steps[step]['richiesta'], reply_markup=monster_steps[step]['keyboard_bottom'](obj, modifier))
+
+
+
 
 
 def runner():

@@ -1,7 +1,5 @@
 from telepot.namedtuple import InlineKeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
 
-
-
 """Qui ci sono tutte le liste e i dizionari che mi servono"""
 
 # =======================================================================================================================
@@ -30,7 +28,7 @@ descrittori = [
     # qui ci sono tutti i descrittori dei mostri, in futuro implementerò la possibilità di aggiungerne alcuni personalizzati dall'utente
     'nessuno',
     'orco',
-    'aarakocra)',
+    'aarakocra',
     'goblinoide',
     'bullywug',
     'coboldo',
@@ -57,6 +55,7 @@ descrittori = [
 ]
 
 allineamento = [  # qui ci sono tutti i vari allineamenti possibili
+    'Senza Allineamento',
     'Legale Buono',
     'Legale Neutrale',
     'Legale Malvagio',
@@ -65,8 +64,7 @@ allineamento = [  # qui ci sono tutti i vari allineamenti possibili
     'Neutrale Malvagio',
     'Caotico Buono',
     'Caotico Neutrale',
-    'Caotico Malvagio',
-    'Senza Allineamento'
+    'Caotico Malvagio'
 ]
 
 danni = [  # qui ci sono tutte le tipologie di danni
@@ -191,6 +189,7 @@ varie = {
     'resDanni': (x for x in danni),
     'immDanni': (x for x in danni),
     'immCondizioni': (x for x in condizioni),
+    'TS': (x for x in skills.keys())
 
 }
 
@@ -203,7 +202,7 @@ taglie = {  # qui ci sono le varie taglie dei mostri con i loro dadi vita
     'Mastodontica': 20
 }
 
-PE = {  # questo è l'elenco di tutti i gradi sfida del mostro con annessi i PE gaudagnati e il bonus di competenza
+PE = {  # questo è l'elenco di tutti i gradi sfida del mostro con annessi i PE guadagnati e il bonus di competenza
     '0': ['0', 2],
     '1 / 8': ['25', 2],
     '1 / 4': ['50', 2],
@@ -241,43 +240,43 @@ PE = {  # questo è l'elenco di tutti i gradi sfida del mostro con annessi i PE 
 }
 
 monster_steps = {
-    # questo dizionario contiene tutti i valori del mostro, all'izio il valore delle chiavi è il messaggio che il bot invierà come richiesta, poi verrà sostituita dall'imput dell'utente
+    # questo dizionario contiene tutti i valori del mostro, all'inizio il valore delle chiavi è il messaggio che il bot invierà come richiesta, poi verrà sostituita dall'input dell'utente
     'nome': {  # 0
         'richiesta': 'Come si chiama il mostro? ',
         'errore': 'Il mostro deve avere un nome diverso dagli altri mostri che hai già crato',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True if text not in user['mostri'] else False
     },
     'tipo': {  # 1
         'richiesta': 'Di che tipo è? ',
         'errore': 'Il tipo di mostro deve essere uno di questi',
-        'keyboard_bottom': ReplyKeyboardMarkup(
+        'keyboard_bottom': lambda user, modifier: ReplyKeyboardMarkup(
             keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in tipo],
             one_time_keyboard=True
         ),
         'condizione': lambda text, user: True if text in tipo else False
     },
     'taglia': {  # 2
-        'richiesta': 'Dimmi la taglia ',
+        'richiesta': 'Dimmi la taglia',
         'errore': 'La taglia deve essere una di queste',
-        'keyboard_bottom': ReplyKeyboardMarkup(
-            keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in [taglie for taglie in taglie.keys()]],
+        'keyboard_bottom': lambda user, modifier: ReplyKeyboardMarkup(
+            keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in taglie.keys()],
             one_time_keyboard=True
         ),
         'condizione': lambda text, user: True if text in taglie.keys() else False
     },
     'descrittore': {  # 3
-        'richiesta': 'Ha un descrittore particolare? ',
+        'richiesta': '<b>Ha un descrittore</b> particolare?',
         'errore': 'il descrittore defe essere uno di questi',
-        'keyboard_bottom': InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (tipo + ['nessuno'])]
+        'keyboard_bottom': lambda user, modifier: ReplyKeyboardMarkup(
+            keyboard=[[InlineKeyboardButton(text=i, callback_data=i)] for i in (modifier + descrittori)]
         ),
-        'condizione': lambda text, user: True if text in descrittori or text == 'nessuno' else False,
+        'condizione': lambda text, user: True if text in descrittori or text == 'nessuno' else False
     },
     'allineamento': {  # 4
-        'richiesta': 'Dimmi il suo allinemanto ',
+        'richiesta': 'Dimmi il suo allineamento ',
         'errore': 'L\'allineamento deve essere uno di questi',
-        'keyboard_bottom': ReplyKeyboardMarkup(
+        'keyboard_bottom': lambda user, modifier: ReplyKeyboardMarkup(
             keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in allineamento],
             one_time_keyboard=True
         ),
@@ -286,75 +285,89 @@ monster_steps = {
     'CA': {  # 5
         'richiesta': 'Dimmi la sua classe armatura ',
         'errore': '',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True
     },
     'n_dadoVita': {  # 6
         'richiesta': 'Dimmi quanti dadi vita ha ',
         'errore': 'Il numero dei dadi vita deve essere un numero naturale maggiore di 0',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True if int(text) > 0 else False
     },
     'speed': {  # 7
         'richiesta': 'Dimmi la sua velocità ',
         'errore': '',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True
     },
     'stats': {  # 8
         'richiesta': 'Dimmi le sue statistiche ',
         'errore': 'Le statistiche devono essere 6 numeri naturali maggiori di 0',
-        'keyboard_bottom': None,
-        'condizione': lambda text, user: True if len(filter(lambda stat: (int(stat) > 0), text.split())) == 6 else False
+        'keyboard_bottom': lambda user, modifier: None,
+        'condizione': lambda text, user: True if len(
+            list(filter(lambda stat: (int(stat) > 0), text.split()))) == 6 else False
     },
     'TS': {  # 9
-        'richiesta': 'Ora dimmi se il mostro ha qualche competeneza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno',
+        'richiesta': 'Ora dimmi se il mostro ha qualche competenza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno',
         'errore': 'I tiri salvezza devono essere tra questi',
-        'keyboard_bottom': InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in skills.keys()]
-        ),
+        'keyboard_bottom': lambda user_ts, modifier_ts: InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text=f'{x.capitalize()} □' if x not in user_ts['componenti']['TS'] else f'{x.capitalize()} ☑️',
+                    callback_data=f'/set!TS!{x}'
+                )
+            ]  for x in skills.keys()]),
         'condizione': lambda text, user: True
     },
     'skills': {  # 10
         'richiesta': 'Dimmi in cosa ha competenza ',
         'errore': 'Le skills devono essere tra queste',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda user, x: lambda user, modifier: InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text=i.capitalize(), callback_data=f'step {i}')] for i in
+                             ([modifier + descrittori])]
+        ),
         'condizione': lambda text, user: True
     },
     'resDanni': {  # 11
-        'richiesta': 'Ha qulche resistenza ai danni? ',
+        'richiesta': 'Ha qualche resistenza ai danni? ',
         'errore': 'Una resistenza deve riguardare un certo tipo di danno',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (['nessuno'] + danni)]
+        ),
         'condizione': lambda text, user: True
     },
     'immDanni': {  # 12
         'richiesta': 'Ha qualche immunità ai danni ',
         'errore': 'U\'immunità deve riguardare un certo tipo di danno',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (['nessuno'] + danni)]
+        ),
         'condizione': lambda text, user: True
     },
     'immCondizioni': {  # 13
         'richiesta': 'Ha qualche immunità alle condizioni? ',
         'errore': 'U\'immunità deve riguardare un certo tipo di condizione',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (['nessuno'] + condizioni)]
+        ),
         'condizione': lambda text, user: True
     },
     'sensi': {  # 14
         'richiesta': 'Dimmi i suoi sensi ',
         'errore': '',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: None,
         'condizione': lambda text, user: True
     },
     'linguaggi': {  # 15
         'richiesta': 'Dimmi i suoi linguaggi ',
         'errore': '',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: None,
         'condizione': lambda text, user: True
     },
     'sfida': {  # 16
         'richiesta': 'Dimmi il suo grado sfida ',
         'errore': 'La sfida deve essere una di queste',
-        'keyboard_bottom': ReplyKeyboardMarkup(
+        'keyboard_bottom': lambda x: ReplyKeyboardMarkup(
             keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in PE],
             one_time_keyboard=True
         ),
@@ -363,25 +376,25 @@ monster_steps = {
     'tratti': {  # 17
         'richiesta': 'dimmi che tratti ha con questo formato\ntitolo del tratto! descrizione del tratto',
         'errore': '',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: None,
         'condizione': lambda text, user: True
     },
     'azioni': {  # 18
         'richiesta': 'dimmi che azioni ha con questo formato\ntitolo del azione! descrizione del azione',
         'errore': '',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: None,
         'condizione': lambda text, user: True
     },
     'azioniLeggendarie': {  # 19
         'richiesta': 'dimmi che azioni leggendarie ha con questo formato\ntitolo dell\' azione leggendaria! descrizione dell\' azione leggendaria',
         'errore': '',
-        'keyboard_bottom': None,
+        'keyboard_bottom': lambda x: None,
         'condizione': lambda text, user: True
     }
 }
 
 componenti = {
-    # questo dizionario contiene tutti i valori del mostro, all'izio il valore delle chiavi è il messaggio che il bot invierà come richiesta, poi verrà sostituita dall'imput dell'utente
+    # questo dizionario contiene tutti i valori del mostro, all'inizio il valore delle chiavi è il messaggio che il bot invierà come richiesta, poi verrà sostituita dal input dell'utente
     'nome': '',
     'tipo': '',
     'taglia': '',
@@ -389,15 +402,15 @@ componenti = {
     'allineamento': '',
     'CA': '',
     'n_dadoVita': '',
-    'speed': '',
-    'stats': '',
-    'TS': '',
-    'skills': '',
-    'resDanni': '',
-    'immDanni': '',
-    'immCondizioni': '',
-    'sensi': '',
-    'linguaggi': '',
+    'speed': [],
+    'stats': [],
+    'TS': [],
+    'skills': [],
+    'resDanni': [],
+    'immDanni': [],
+    'immCondizioni': [],
+    'sensi': [],
+    'linguaggi': [],
     'sfida': '',
     'tratti': [],
     'azioni': [],
@@ -405,13 +418,12 @@ componenti = {
 }
 
 user_creator = {
-    # Questo è il dizionario semi precompilato che viene passato alla classe User quando viene creato un nuovo utente
+    # Questo è il dizionario semi precompilato che viene passato alla classe User al momento della creazione dell'utente
     'chat_id': '',  # questo valore è l'unico che viene modificato alla creazione dell'oggetto
-    'mostri': {},
-    # questo dizionario corrisponde alla lista di mostri che creerà ogni utente. Alla creazione è vuoto perchè devono ancora essere creato mostri
-    'monster_creator': True,
-    # questo attriuto rappresenta la variabile che permette al bot di sapere se è in esecuzione la creazione di un mostro opure no
+    'mostri': {},  # Questo dizionario corrisponde alla lista di mostri che creerà ogni utente. Alla creazione è vuoto perchè devono ancora essere creato mostri
+    'monster_creator': True,  # Questo attributo rappresenta la variabile che permette al bot di sapere se è in esecuzione la creazione di un mostro oppure no
     'componenti': componenti,  # questo è il dizionario che conterrà le statistiche del mostro
-    'passaggio': 'nome'
-    # ogni volta che un utente crea un mostro questa sarà la variabile che permette al bot di sapere a che punto è la creazione
+    'passaggio': 'nome',  # Ogni volta che un utente crea un mostro questa sarà la variabile che permette al bot di sapere a che punto è la creazione
+    'inline_msg_identifier': False
 }
+

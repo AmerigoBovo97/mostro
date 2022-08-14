@@ -1,3 +1,4 @@
+import telepot
 from prettytable import PrettyTable
 from Mostri_definitivo.venv.script.bot import bot
 from theDatas import *
@@ -16,22 +17,31 @@ def load(chat_id):
 
 
 def next_step(step):
-    """ritorna lo step successivo da assegnare a: user['passaggio']"""
+    """Ritorna lo step successivo da assegnare a: user['passaggio']"""
 
     cul = [x for x in componenti.keys()]
     return cul[cul.index(step) + 1]
 
 
-def setter(user, step, text):
-    """assegna nuovi valori a user['componenti'] e user['passaggio'] per poi salvarli"""
+def step_setter(user, step):
+    """Assegna il nuovo valore a user['passaggio'] per poi salvarlo"""
 
-    user['componenti'][step] = text
     user['passaggio'] = next_step(step)
     save(user)
 
 
+def setter(user, step, text):
+    """Assegna il nuovo valore a user['componenti'] per poi salvarlo"""
+
+    if type(user['componenti'][step]) == list:
+        user['componenti'][step].append(text)
+    else:
+        user['componenti'][step] = text
+    save(user)
+
+
 def table_creator(obj):
-    """2crea uo oggetto tabella con gli attributi che interessano e li printa"""
+    """Crea uo oggetto tabella con gli attributi che interessano e li stampa"""
 
     obj_table = PrettyTable()
     obj_table.field_names = ['KEY', 'VALUE']
@@ -42,16 +52,25 @@ def table_creator(obj):
     print(obj_table)
 
 
-def setter_requester(user, step, text, chat_id):
-    """oltre che a richiamre la modifica di un componente invia anche all'utente il messaggio di richiesta nuovo componente"""
+def setter_requester(user, step, text, chat_id, modifier=[]):
+    """Oltre che a richiamre la modifica di un componente invia anche all'utente il messaggio di richiesta per un nuovo"""
 
     if monster_steps[step]['condizione'](text, user):
         setter(user, step, text)
-        bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'],
-                        reply_markup=monster_steps[next_step(step)]['keyboard_bottom'])
+        step_setter(user, step)
+        last_msg = bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'],
+                        reply_markup=monster_steps[next_step(step)]['keyboard_bottom'](user, modifier),
+                        parse_mode='HTML')
+
     else:
-        bot.sendMessage(chat_id, monster_steps[step]['errore'],
-                        reply_markup=monster_steps[step]['keyboard_bottom'])
+        last_msg = bot.sendMessage(chat_id, monster_steps[step]['errore'],
+                        reply_markup=monster_steps[step]['keyboard_bottom'](user, modifier))
+
+    if 'reply_markup' in last_msg:
+        msg_id = telepot.message_identifier(last_msg)
+        user['inline_msg_identifier'] = msg_id
+        print(msg_id)
+        save(user)
 
 
 
