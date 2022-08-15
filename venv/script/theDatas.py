@@ -150,6 +150,34 @@ lingue = [
 # =======================================================================================================================
 """DIZIONARI"""
 
+CA = {
+    'senza armatura': {'base': 10, 'caratteristica': ['Des'], 'max_caratteristica': 0},
+    'difesa senza armatura barbaro': {'base': 10, 'caratteristica': ['Des', 'Cos'], 'max_caratteristica': 0},
+    'difesa senza armatura monaco': {'base': 10, 'caratteristica': ['Des', 'Sag'], 'max_caratteristica': 0},
+    'resilienza draconica': {'base': 13, 'caratteristica': ['Des'], 'max_caratteristica': 0},
+    'armatura naturale': {'base': 10, 'caratteristica': 'Des', 'max_caratteristica': 0},
+    'armature leggere': {
+        'armatura imbottita': {'base': 11, 'caratteristica': ['Des'], 'max_caratteristica': 0},
+        'armatura di cuoio': {'base': 11, 'caratteristica': ['Des'], 'max_caratteristica': 0},
+        'armatura di cuoio borchiato': {'base': 12, 'caratteristica': ['Des'], 'max_caratteristica': 0}
+    },
+    'armature medie': {
+        'armatura in pelle':{'base': 12, 'caratteristica': ['Des'], 'max_caratteristica': 2},
+        'giaco di maglia': {'base': 13, 'caratteristica': ['Des'], 'max_caratteristica': 2},
+        'armatura a scaglie': {'base': 14, 'caratteristica': ['Des'], 'max_caratteristica': 2},
+        'corazza a piastre': {'base': 14, 'caratteristica': ['Des'], 'max_caratteristica': 2},
+        'mezza a piastre': {'base': 15, 'caratteristica': ['Des'], 'max_caratteristica': 2}
+
+    },
+    'armature pesanti': {
+        'armatura ad anelli': {'base': 14, 'caratteristica': [], 'max_caratteristica': 0},
+        'cotta di maglia': {'base': 16, 'caratteristica': [], 'max_caratteristica': 0},
+        'armatura a strisce': {'base': 17, 'caratteristica': [], 'max_caratteristica': 0},
+        'armatura completa a piastre': {'base': 18, 'caratteristica': [], 'max_caratteristica': 0}
+    },
+    'scudo': [2, 'modificatore']
+}
+
 skills = {
     'For': [
         'Atletica'
@@ -184,8 +212,12 @@ skills = {
     ],
 }
 
+list_skills = []
+for x in skills.values():
+    list_skills += x
+
 varie = {
-    'skills': (x for x in skills.values()),
+    'skills': (x for x in list_skills),
     'resDanni': (x for x in danni),
     'immDanni': (x for x in danni),
     'immCondizioni': (x for x in condizioni),
@@ -304,70 +336,100 @@ monster_steps = {
         'richiesta': 'Dimmi le sue statistiche ',
         'errore': 'Le statistiche devono essere 6 numeri naturali maggiori di 0',
         'keyboard_bottom': lambda user, modifier: None,
-        'condizione': lambda text, user: True if len(
-            list(filter(lambda stat: (int(stat) > 0), text.split()))) == 6 else False
+        'condizione': lambda text, user: True if
+        len(list(filter(lambda stat: (int(stat) > 0), text))) == 6 else False
     },
     'TS': {  # 9
-        'richiesta': 'Ora dimmi se il mostro ha qualche competenza nei tiri salvezza,\nusa questo tipo di formattazione:\nCos Int Sag\n oppure solamente:\nFor\n nel caso non ne avesse nessuno scrivi : Nessuno',
+        'richiesta': 'Ora dimmi se il mostro ha qualche competenza nei tiri salvezza.\nPremi le statistiche e poi il pulsante basta,\n se invece non ha competenza premi il tasto nessuno',
         'errore': 'I tiri salvezza devono essere tra questi',
-        'keyboard_bottom': lambda user_ts, modifier_ts: InlineKeyboardMarkup(
+        'keyboard_bottom': lambda user, modifier: InlineKeyboardMarkup(
             inline_keyboard=[[
                 InlineKeyboardButton(
-                    text=f'{x.capitalize()} □' if x not in user_ts['componenti']['TS'] else f'{x.capitalize()} ☑️',
-                    callback_data=f'/set!TS!{x}'
+                    text=x.capitalize() if x == 'nessuno'
+                    else x.capitalize() if x == 'basta'
+                    else f'{x.capitalize()} □' if x not in user['componenti']['TS']
+                    else f'{x.capitalize()} ☑️',
+                    callback_data=f'/query_set_list!TS!{x}'
                 )
-            ]  for x in skills.keys()]),
+            ]  for x in (['nessuno' if len(user['componenti']['TS']) == 0 else 'basta'] + list(skills.keys()))]),
         'condizione': lambda text, user: True
     },
     'skills': {  # 10
         'richiesta': 'Dimmi in cosa ha competenza ',
         'errore': 'Le skills devono essere tra queste',
-        'keyboard_bottom': lambda user, x: lambda user, modifier: InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text=i.capitalize(), callback_data=f'step {i}')] for i in
-                             ([modifier + descrittori])]
-        ),
+        'keyboard_bottom': lambda user, modifier: InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text=x.capitalize() if x == 'nessuno'
+                    else x.capitalize() if x == 'basta'
+                    else f'{x.capitalize()} □' if x not in user['componenti']['skills']
+                    else f'{x.capitalize()} ☑️',
+                    callback_data=f'/query_set_list!skills!{x}'
+                )
+            ]  for x in (['nessuno' if len(user['componenti']['skills']) == 0 else 'basta'] + list_skills)]),
         'condizione': lambda text, user: True
     },
     'resDanni': {  # 11
         'richiesta': 'Ha qualche resistenza ai danni? ',
         'errore': 'Una resistenza deve riguardare un certo tipo di danno',
-        'keyboard_bottom': lambda x: InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (['nessuno'] + danni)]
-        ),
+        'keyboard_bottom': lambda user, modifier:InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text=x.capitalize() if x == 'nessuno'
+                    else x.capitalize() if x == 'basta'
+                    else f'{x.capitalize()} □' if x not in user['componenti']['resDanni']
+                    else f'{x.capitalize()} ☑️',
+                    callback_data=f'/query_set_list!resDanni!{x}'
+                )
+            ]  for x in (['nessuno' if len(user['componenti']['skills']) == 0 else 'basta'] + danni)]),
         'condizione': lambda text, user: True
     },
     'immDanni': {  # 12
         'richiesta': 'Ha qualche immunità ai danni ',
         'errore': 'U\'immunità deve riguardare un certo tipo di danno',
-        'keyboard_bottom': lambda x: InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (['nessuno'] + danni)]
-        ),
+        'keyboard_bottom': lambda user, modifier: InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text=x.capitalize() if x == 'nessuno'
+                    else x.capitalize() if x == 'basta'
+                    else f'{x.capitalize()} □' if x not in user['componenti']['immDanni']
+                    else f'{x.capitalize()} ☑️',
+                    callback_data=f'/query_set_list!immDanni!{x}'
+                )
+            ]  for x in (['nessuno' if len(user['componenti']['immDanni']) == 0 else 'basta'] + danni)]),
         'condizione': lambda text, user: True
     },
     'immCondizioni': {  # 13
         'richiesta': 'Ha qualche immunità alle condizioni? ',
         'errore': 'U\'immunità deve riguardare un certo tipo di condizione',
-        'keyboard_bottom': lambda x: InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in (['nessuno'] + condizioni)]
-        ),
+        'keyboard_bottom': lambda user, modifier: InlineKeyboardMarkup(
+            inline_keyboard=[[
+                InlineKeyboardButton(
+                    text=x.capitalize() if x == 'nessuno'
+                    else x.capitalize() if x == 'basta'
+                    else f'{x.capitalize()} □' if x not in user['componenti']['immCondizioni']
+                    else f'{x.capitalize()} ☑️',
+                    callback_data=f'/query_set_list!immCondizioni!{x}'
+                )
+            ]  for x in (['nessuno' if len(user['componenti']['immCondizioni']) == 0 else 'basta'] + condizioni)]),
         'condizione': lambda text, user: True
     },
     'sensi': {  # 14
         'richiesta': 'Dimmi i suoi sensi ',
         'errore': '',
-        'keyboard_bottom': lambda x: None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True
     },
     'linguaggi': {  # 15
         'richiesta': 'Dimmi i suoi linguaggi ',
         'errore': '',
-        'keyboard_bottom': lambda x: None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True
     },
     'sfida': {  # 16
         'richiesta': 'Dimmi il suo grado sfida ',
         'errore': 'La sfida deve essere una di queste',
-        'keyboard_bottom': lambda x: ReplyKeyboardMarkup(
+        'keyboard_bottom': lambda user, modifier: ReplyKeyboardMarkup(
             keyboard=[[InlineKeyboardButton(text=x, callback_data=x)] for x in PE],
             one_time_keyboard=True
         ),
@@ -376,19 +438,19 @@ monster_steps = {
     'tratti': {  # 17
         'richiesta': 'dimmi che tratti ha con questo formato\ntitolo del tratto! descrizione del tratto',
         'errore': '',
-        'keyboard_bottom': lambda x: None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True
     },
     'azioni': {  # 18
         'richiesta': 'dimmi che azioni ha con questo formato\ntitolo del azione! descrizione del azione',
         'errore': '',
-        'keyboard_bottom': lambda x: None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True
     },
     'azioniLeggendarie': {  # 19
         'richiesta': 'dimmi che azioni leggendarie ha con questo formato\ntitolo dell\' azione leggendaria! descrizione dell\' azione leggendaria',
         'errore': '',
-        'keyboard_bottom': lambda x: None,
+        'keyboard_bottom': lambda user, modifier: None,
         'condizione': lambda text, user: True
     }
 }
@@ -403,7 +465,7 @@ componenti = {
     'CA': '',
     'n_dadoVita': '',
     'speed': [],
-    'stats': [],
+    'stats': '',
     'TS': [],
     'skills': [],
     'resDanni': [],
@@ -424,6 +486,6 @@ user_creator = {
     'monster_creator': True,  # Questo attributo rappresenta la variabile che permette al bot di sapere se è in esecuzione la creazione di un mostro oppure no
     'componenti': componenti,  # questo è il dizionario che conterrà le statistiche del mostro
     'passaggio': 'nome',  # Ogni volta che un utente crea un mostro questa sarà la variabile che permette al bot di sapere a che punto è la creazione
-    'inline_msg_identifier': False
+    'inline_msg_id': False
 }
 

@@ -52,25 +52,32 @@ def table_creator(obj):
     print(obj_table)
 
 
-def setter_requester(user, step, text, chat_id, modifier=[]):
-    """Oltre che a richiamre la modifica di un componente invia anche all'utente il messaggio di richiesta per un nuovo"""
+def requester(user, chat_id, step, modifier):
+    """Invia anche all'utente il messaggio di richiesta per un nuovo"""
 
-    if monster_steps[step]['condizione'](text, user):
-        setter(user, step, text)
-        step_setter(user, step)
-        last_msg = bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'],
+    last_msg = bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'],
                         reply_markup=monster_steps[next_step(step)]['keyboard_bottom'](user, modifier),
                         parse_mode='HTML')
 
-    else:
-        last_msg = bot.sendMessage(chat_id, monster_steps[step]['errore'],
-                        reply_markup=monster_steps[step]['keyboard_bottom'](user, modifier))
-
     if 'reply_markup' in last_msg:
         msg_id = telepot.message_identifier(last_msg)
-        user['inline_msg_identifier'] = msg_id
+        user['inline_msg_id'] = msg_id
         print(msg_id)
         save(user)
+
+
+def setter_requester(user, step, text, chat_id, modifier=[]):
+    """Richiamre la modifica di un componente e ne richiede uno nuovo"""
+
+    if modifier is None:
+        modifier = []
+    if monster_steps[step]['condizione'](text, user):
+        setter(user, step, text)
+        step_setter(user, step)
+        last_msg = requester(user, chat_id, step, modifier)
+
+    else:
+        last_msg = requester(user, chat_id, step, modifier)
 
 
 

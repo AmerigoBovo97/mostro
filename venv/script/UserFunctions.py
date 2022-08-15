@@ -29,8 +29,15 @@ def new_mostro(msg):
     chat_id = msg['chat']['id']
     user = load(chat_id)
     bot.sendMessage(chat_id, 'questo è il primo passaggio per creare un nuovo mostro, dimmi il nome che gli vuoi dare')
-    user['monster_creator'] = False
+    user['monster_creator'] = True
+    user['componenti'] = componenti
     user['passaggio'] = 'nome'
+
+    if user['inline_msg_id']:
+        msg_id1, msg_id2 = user['inline_msg_id']
+        bot.deleteMessage((msg_id1, msg_id2))
+
+    user['inline_msg_id'] = False
     save(user)
 
 
@@ -50,8 +57,12 @@ def monster_step(msg):
     step = user['passaggio']
 
     match step:
-        case 'nome' | 'tipo' | 'allineamento' | 'CA' | 'n_dadoVita' | 'speed' | 'stats' | 'sfida':
+        case 'nome' | 'tipo' | 'allineamento' | 'CA' | 'n_dadoVita' | 'speed' | 'sfida':
             setter_requester(user, step, text, chat_id)
+
+        case 'stats':
+            if monster_steps[step]['condizione']:
+                setter_requester(user, step, [int(i) for i in text.split()], chat_id)
 
         case 'TS' | 'skills' | 'resDanni' | 'immDanni' | 'immCondizioni':
             if text == 'Nessuno':
@@ -91,10 +102,31 @@ def monster_step(msg):
                 next_step(step)
                 bot.sendMessage(chat_id, monster_steps[next_step(step)]['richiesta'])
 
-    #table_creator(user)
+    # table_creator(user)
+
+
+def query_set_list(query_step, query_text, user):
+    modifier = []
+    if user['inline_msg_id']:
+        msg_id1, mag_id2 = user['inline_msg_id']
+
+        if query_text != 'nessuno' and query_text != 'basta':
+            if query_text in user['componenti'][query_step]:
+                user['componenti'][query_step].remove(query_text)
+                save(user)
+            else:
+                setter(user, query_step, query_text)
+
+            bot.editMessageText((msg_id1, mag_id2), monster_steps[query_step]['richiesta'],
+                                reply_markup=monster_steps[query_step]['keyboard_bottom'](user, modifier))
+        else:
+            bot.deleteMessage((msg_id1, mag_id2))
+            step_setter(user, query_step)
+            requester(user, user['chat_id'], query_step, modifier)
 
 
 funcs = {  # lista di funzioni richiamabili dall'utente
     '/start': start,
-    '/nuovo': new_mostro
+    '/nuovo': new_mostro,
+    '/query_set_list': query_set_list
 }
